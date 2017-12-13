@@ -1,0 +1,151 @@
+﻿using UnityEngine;
+using System.Collections.Generic;
+using Debug = UnityEngine.Debug;
+
+public class GameLogging : MonoBehaviour
+{
+    [SerializeField] private GameObject JBConsoleUI;
+    
+    private LogstashLogger LogstashLogger { get; set;}
+
+    private JBPasswordEntry passwordEntry;
+
+    private void Awake()
+    {
+        StartConsole();
+
+        var loggers = new List<Loggable>()
+        {
+                new GameJBConsoleLogger(),
+#if DEBUG
+				new ConsoleLogger(),
+#endif
+        };
+        if (Application.isEditor)
+        {
+            loggers.Add(new DebugToUnityLog());
+        }
+
+        Logger.Init(loggers.ToArray());
+    }
+
+    private void ApplyJBPrefs()
+    {
+        var savedDpi = PlayerPrefs.GetInt("console_dpi", 150);
+        JBConsole.instance.BaseDPI = savedDpi;
+    }
+
+    public bool IsConsoleUnlocked()
+    {
+        return passwordEntry == null || passwordEntry.Accepted;
+    }
+
+    public void StartConsole()
+    {
+        if (JBConsole.instance)
+        {
+            ApplyJBPrefs();
+            return;
+        }
+
+        JBConsole.Start(JBConsoleUI);
+        JBConsole.instance.menuItemWidth = 100;
+        JBConsole.instance.Visible = false;
+        ApplyJBPrefs();
+
+        #if UNITY_EDITOR
+        JBCToggleOnKey.RegisterToConsole();
+        #endif
+
+        JBLogger.instance.RecordStackTrace = Application.isEditor || Debug.isDebugBuild;
+
+        if (Application.isEditor)
+        {
+            //Debug.Log("Password hash = " + JBPasswordEntry.Hash(""));
+        }
+        else
+        {
+            #if !DEBUG
+            passwordEntry = JBPasswordEntry.RegisterToConsole("dance!", "HINT");
+            #endif
+        }
+        
+        JBConsole.instance.OnVisiblityChanged += HandleOnVisiblityChanged;
+        JBCVisibleOnPress.RegisterToConsole();
+        var jbcVisibleOnPress = JBConsole.instance.GetComponent<JBCVisibleOnPress>();
+        if (jbcVisibleOnPress)
+        {
+            jbcVisibleOnPress.pressArea = new Rect(0, 0, Screen.width / 10f, Screen.height / 15f);
+        }
+
+        var emailcomp = JBCEmail.RegisterToConsole("", "Insert Bug Name Here");
+        emailcomp.Inverted = true;
+    }
+
+    string PostFormatter(string body)
+    {
+        string header = GetDeviceHeaderInfo();
+
+        body = header + "\n" + body;
+        return body;
+    }
+
+    void HandleOnVisiblityChanged()
+    {
+        
+    }
+    
+    string GetDeviceHeaderInfo()
+    {
+        string header = "";
+
+        try
+        {
+            header += "Device Type: " + SystemInfo.deviceType + "\n";
+            header += "Device Name: " + SystemInfo.deviceName + "\n";
+            header += "Device OS: " + SystemInfo.operatingSystem + "\n";
+            header += "*****";
+        }
+        catch (System.Exception)
+        {
+            header += "FAILED TO GET DEVICE INFO.\n";
+        }
+
+        return header;
+    }
+
+    public static bool IsIgnoredError(string message)
+    {
+        return message.StartsWith("Stale touch detected") || message.Contains("invalid seek position");// || message.StartsWith("Fabric:");
+    }
+
+    public static bool IsAppIntegrityError(string message)
+    {
+        return message.StartsWith("Inflate Error:");
+    }
+
+    public static bool IsEglError(string message)
+    {
+        return message.Contains("EGL_BAD_NATIVE_WINDOW") || message.Contains("[EGL]");
+    }
+
+    public static bool IsFabricError(string message)
+    {
+        return message.StartsWith("Fabric:");
+    }
+
+    public static bool IsWriteError(string message)
+    {
+        return message.StartsWith("IOException") || message.StartsWith("UnauthorizedAccessException") || message.StartsWith("Failed to open file at path");
+    }
+}
+
+public class GameJBConsoleLogger : JBConsoleLogger
+{
+    public override void Init()
+    {
+        // we will start console later.
+    }
+}
+
+
