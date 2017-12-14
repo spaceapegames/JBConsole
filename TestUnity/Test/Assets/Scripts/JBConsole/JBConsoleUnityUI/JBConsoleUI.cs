@@ -5,11 +5,11 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JBConsoleUI : MonoBehaviour
+public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
 {
     [SerializeField] private JBConsoleUIToolbar toolbar = null;
 
-    public Action<ConsoleMenu?> OnToolbarChanged = delegate { };
+    private ExternalUIToolbarChanged OnToolbarChanged = delegate { };
 
     private void Awake()
     {
@@ -27,12 +27,22 @@ public class JBConsoleUI : MonoBehaviour
         }
     }
 
-    public void Enable(bool shouldEnable, JBConsoleState jbConsoleState)
+    public void SetActive(bool shouldEnable, JBConsoleState jbConsoleState)
     {
         if (toolbar != null)
         {
             toolbar.Enable(shouldEnable, jbConsoleState);
         }
+    }
+
+    public void AddToolbarChangedListener(ExternalUIToolbarChanged listener)
+    {
+        OnToolbarChanged += listener;
+    }
+
+    public void RemoveToolbarChangedListener(ExternalUIToolbarChanged listener)
+    {
+        OnToolbarChanged -= listener;        
     }
     
     private void ToolbarButtonSelected(ConsoleMenu? consoleMenu)

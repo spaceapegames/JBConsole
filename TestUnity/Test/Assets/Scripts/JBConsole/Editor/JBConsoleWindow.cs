@@ -95,7 +95,7 @@ public class JBConsoleWindow : EditorWindow
 			GUILayout.Label("Console not initialized...");
 			if(GUILayout.Button("Initialize"))
 			{
-				JBConsole.Start(null);
+				JBConsole.Start();
 				JBConsole.instance.Visible = true;
 			}
 		}

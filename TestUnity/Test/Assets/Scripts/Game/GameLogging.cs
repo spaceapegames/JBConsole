@@ -9,6 +9,8 @@ public class GameLogging : MonoBehaviour
     private LogstashLogger LogstashLogger { get; set;}
 
     private JBPasswordEntry passwordEntry;
+    
+    private GameObject jbConsoleUIGO = null;
 
     private void Awake()
     {
@@ -27,6 +29,17 @@ public class GameLogging : MonoBehaviour
         }
 
         Logger.Init(loggers.ToArray());
+    }
+
+    private void OnDestroy()
+    {
+        if (jbConsoleUIGO != null)
+        {
+            var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
+            JBConsole.instance.RemoveExternalUI(jbConsoleExternalUI);
+            Destroy(jbConsoleUIGO);
+            jbConsoleUIGO = null;
+        }
     }
 
     private void ApplyJBPrefs()
@@ -53,6 +66,10 @@ public class GameLogging : MonoBehaviour
         JBConsole.instance.Visible = false;
         ApplyJBPrefs();
 
+        jbConsoleUIGO = Instantiate(Resources.Load("JBConsoleUI")) as GameObject;
+        var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
+        JBConsole.instance.AddExternalUI(jbConsoleExternalUI);
+        
         #if UNITY_EDITOR
         JBCToggleOnKey.RegisterToConsole();
         #endif

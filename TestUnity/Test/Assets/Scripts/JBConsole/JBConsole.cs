@@ -34,19 +34,12 @@ public class JBConsole : MonoBehaviour
     private const int baseFontSize = 14;
     delegate void SubMenuHandler(int index);
 
-	public static JBConsole Start(GameObject jbConsoleUIPrefab, bool visible = true)
+	public static JBConsole Start(bool visible = true)
 	{
 		if(instance == null)
 		{
 			var go = new GameObject("JBConsole");
-			instance = go.AddComponent<JBConsole>();
-
-			if (jbConsoleUIPrefab != null)
-			{
-				var jbConsoleUIGO = Instantiate(jbConsoleUIPrefab) as GameObject;
-				instance.SetJBConsoleUI(jbConsoleUIGO.GetComponent<JBConsoleUI>());
-			}
-			
+			instance = go.AddComponent<JBConsole>();			
 			instance.Visible = visible;
 			JBConsole.isEditor = Application.isEditor;
 		}
@@ -86,8 +79,8 @@ public class JBConsole : MonoBehaviour
 			_style.SetFont(font);
 		}
 	}
-	
-	private JBConsoleUI jbConsoleUI;
+
+	private List<JBConsoleExternalUI> externalUIs = null;
 	
     public int menuItemWidth = 135;
     public int BaseDPI = 100;
@@ -99,15 +92,13 @@ public class JBConsole : MonoBehaviour
 		{
 			_visible = value;
 
-			if (jbConsoleUI != null)
-			{
-				jbConsoleUI.Enable(_visible, State);
-			}
+			var state = State;
+			ExternalUIAction((ui) => ui.SetActive(_visible, state));
 	        
 			if (OnVisiblityChanged != null) OnVisiblityChanged();
 		}
 	}
-
+	
 	public JBConsoleState State
 	{
 		get
@@ -225,21 +216,6 @@ public class JBConsole : MonoBehaviour
 			touchPosition = touch;
 			scrolled |= Mathf.Abs(scrollVelocity) > 3f;
 		}
-	}
-
-	private void SetJBConsoleUI(JBConsoleUI jbConsoleUI)
-	{
-		this.jbConsoleUI = jbConsoleUI;
-		this.jbConsoleUI.OnToolbarChanged += (consoleMenuType) =>
-		{
-			Defocus();
-			int selectionIndex = -1;
-			if (consoleMenuType != null)
-			{
-				selectionIndex = (int) consoleMenuType.Value;
-			}
-			OnMenuSelection(selectionIndex);				
-		};
 	}
 	
     void OnMenuSelection(int index)
@@ -363,7 +339,7 @@ public class JBConsole : MonoBehaviour
 	
 	void OnGUI ()
 	{
-        if (jbConsoleUI != null || (!Visible && ToastLog == null)) return;            
+        if (HasExternalUI() || (!Visible && ToastLog == null)) return;            
 
         var depth = GUI.depth;
 		GUI.depth = int.MaxValue - 10;
@@ -695,6 +671,65 @@ public class JBConsole : MonoBehaviour
 	{
 	    var comp = gameObject.GetComponent<T>() ?? gameObject.AddComponent<T>();
 	    return comp;
+	}
+
+	private bool HasExternalUI()
+	{
+		return externalUIs != null && externalUIs.Count > 0;
+	}	
+	
+	private void ExternalUIAction(Action<JBConsoleExternalUI> action)
+	{
+		if (action != null && externalUIs != null)
+		{
+			foreach (var externalUI in externalUIs)
+			{
+				if (externalUI != null)
+				{
+					action(externalUI);
+				}
+			}				
+		}
+	}
+	
+	public void AddExternalUI(JBConsoleExternalUI externalUI)
+	{
+		if (externalUIs == null)
+		{
+			externalUIs = new List<JBConsoleExternalUI>();
+		}
+
+		if (!externalUIs.Contains(externalUI))
+		{
+			externalUIs.Add(externalUI);
+			externalUI.AddToolbarChangedListener(ExternalUIToolbarChanged);	
+			externalUI.SetActive(_visible, State);
+		}		
+	}
+
+	public void RemoveExternalUI(JBConsoleExternalUI externalUI)
+	{
+		if (externalUIs == null)
+		{
+			return;
+		}
+
+		if (externalUIs.Contains(externalUI))
+		{
+			externalUI.RemoveToolbarChangedListener(ExternalUIToolbarChanged);		
+			externalUIs.Remove(externalUI);
+		}		
+	}
+	
+	private void ExternalUIToolbarChanged(ConsoleMenu? newConsoleMenu)
+	{
+		Defocus();
+		int selectionIndex = -1;
+		if (newConsoleMenu != null)
+		{
+			selectionIndex = (int) newConsoleMenu.Value;
+		}
+		OnMenuSelection(selectionIndex);	
 	}
 }
 

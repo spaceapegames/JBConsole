@@ -15,7 +15,7 @@ public class JBConsoleSample : MonoBehaviour {
 
 	void Start ()
     {
-		JBConsole.Start(null);
+		JBConsole.Start();
 		
 		JBCToggleOnKey.RegisterToConsole();
 		JBCVisibleOnPress.RegisterToConsole();

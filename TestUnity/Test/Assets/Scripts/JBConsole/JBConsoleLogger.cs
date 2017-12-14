@@ -14,7 +14,7 @@ public class JBConsoleLogger : Loggable
 	{
 		if(!JBConsole.instance)
 		{
-			JBConsole.Start(null);
+			JBConsole.Start();
 			SetupConsole(JBConsole.instance);
 		}
 	}
