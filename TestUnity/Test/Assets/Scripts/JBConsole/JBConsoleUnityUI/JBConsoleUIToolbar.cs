@@ -135,33 +135,43 @@ public class JBConsoleUIToolbar : MonoBehaviour
         RemoveTopBarButtons();
     }
 
-    public void Enable(bool shouldEnable, JBConsoleState jbConsoleState)
+    public void StateChanged(JBConsoleState jbConsoleState, bool forceUpdate = false)
+    {
+        if (!forceUpdate && jbConsoleState.CurrentConsoleMenu == currentConsoleMenu)
+        {
+            return;
+        }
+        
+        ConsoleMenu? currentConsoleMenuToLoad = jbConsoleState.CurrentConsoleMenu;
+
+        var currentActiveToggles = new List<Toggle>(toolbarToggleGroup.ActiveToggles());
+
+        JBConsoleUIToolbarChanger toolbarChanger = null;
+
+        // if we should have something loaded then lets try
+        if (currentConsoleMenuToLoad != null && createdToolbarButtonsDict.ContainsKey(currentConsoleMenuToLoad.Value))
+        {
+            toolbarChanger = createdToolbarButtonsDict[currentConsoleMenuToLoad.Value];
+        }
+
+        toolbarToggleGroup.SetAllTogglesOff();
+
+        if (toolbarChanger != null && toolbarChanger.Toggle != null)
+        {
+            toolbarChanger.Toggle.isOn = true;
+        }
+
+        CreateUIForConsoleMenu(currentConsoleMenuToLoad);   
+    }
+    
+    public void SetActive(bool shouldEnable, JBConsoleState jbConsoleState)
     {
         manuallyChangingToggles = true;
         gameObject.SetActive(shouldEnable);
         
         if (shouldEnable)
         {
-            ConsoleMenu? currentConsoleMenuToLoad = jbConsoleState.CurrentConsoleMenu;
-
-            var currentActiveToggles = new List<Toggle>(toolbarToggleGroup.ActiveToggles());
-
-            JBConsoleUIToolbarChanger toolbarChanger = null;
-
-            // if we should have something loaded then lets try
-            if (currentConsoleMenuToLoad != null && createdToolbarButtonsDict.ContainsKey(currentConsoleMenuToLoad.Value))
-            {
-                toolbarChanger = createdToolbarButtonsDict[currentConsoleMenuToLoad.Value];
-            }
-
-            toolbarToggleGroup.SetAllTogglesOff();
-
-            if (toolbarChanger != null && toolbarChanger.Toggle != null)
-            {
-                toolbarChanger.Toggle.isOn = true;
-            }
-
-            CreateUIForConsoleMenu(currentConsoleMenuToLoad);
+            StateChanged(jbConsoleState, true);
         }
         else
         {
@@ -182,7 +192,7 @@ public class JBConsoleUIToolbar : MonoBehaviour
     
     private void CreateUIForConsoleMenu(ConsoleMenu? consoleMenu)
     {
-        Debug.Log("CreateUIForConsoleMenu "+consoleMenu);        
+        //Debug.Log("CreateUIForConsoleMenu "+consoleMenu);        
 
         if (consoleMenu == currentConsoleMenu)
         {

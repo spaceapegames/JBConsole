@@ -8,6 +8,8 @@ using UnityEngine.UI;
 public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
 {
     [SerializeField] private JBConsoleUIToolbar toolbar = null;
+    [SerializeField] private JBConsoleUILog log = null;
+    [SerializeField] private JBConsoleUIMenus menus = null;
 
     private ExternalUIToolbarChanged OnToolbarChanged = delegate { };
 
@@ -27,11 +29,19 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         }
     }
 
+    public void StateChanged(JBConsoleState state)
+    {
+        if (toolbar != null)
+        {
+            toolbar.StateChanged(state);
+        }        
+    }
+    
     public void SetActive(bool shouldEnable, JBConsoleState jbConsoleState)
     {
         if (toolbar != null)
         {
-            toolbar.Enable(shouldEnable, jbConsoleState);
+            toolbar.SetActive(shouldEnable, jbConsoleState);
         }
     }
 
