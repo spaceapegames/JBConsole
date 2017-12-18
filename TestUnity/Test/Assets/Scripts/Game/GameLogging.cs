@@ -36,7 +36,10 @@ public class GameLogging : MonoBehaviour
         if (jbConsoleUIGO != null)
         {
             var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
-            JBConsole.instance.RemoveExternalUI(jbConsoleExternalUI);
+            if (JBConsole.Exists)
+            {
+                JBConsole.instance.RemoveExternalUI(jbConsoleExternalUI);                
+            }
             Destroy(jbConsoleUIGO);
             jbConsoleUIGO = null;
         }
