@@ -7,9 +7,11 @@ public class JBConsoleUIToolbarChanger : MonoBehaviour
 {
     [SerializeField] protected ConsoleMenu menuType;
     [SerializeField] protected Text label;
+
+    protected bool isActive = false;
     
     public System.Action<ConsoleMenu?> OnToolbarButton = delegate {};
-
+    
     protected virtual void Awake()
     {
         SetupLabel();
@@ -36,18 +38,17 @@ public class JBConsoleUIToolbarChanger : MonoBehaviour
 
     public virtual bool IsActive
     {
-        get
+        get { return isActive; }
+        set
         {
-            return false;            
+            isActive = value; 
+            IsActiveChanged();
         }
     }
 
-    public virtual Toggle Toggle
+    protected virtual void IsActiveChanged()
     {
-        get
-        {
-            return null;            
-        }
+        
     }
     
     public ConsoleMenu ConsoleMenuType { get { return menuType; }}

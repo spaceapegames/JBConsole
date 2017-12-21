@@ -10,6 +10,7 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     [SerializeField] private JBConsoleUIToolbar toolbar = null;
     [SerializeField] private JBConsoleUILog log = null;
     [SerializeField] private JBConsoleUIMenus menus = null;
+    [SerializeField] private GameObject visibleRoot = null;
 
     private ExternalUIToolbarChanged OnToolbarChanged = delegate { };
 
@@ -29,19 +30,28 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         }
     }
 
-    public void StateChanged(JBConsoleState state)
+    public void StateChanged(JBConsoleState jbConsoleState)
     {
         if (toolbar != null)
         {
-            toolbar.StateChanged(state);
+            toolbar.SetState(jbConsoleState);
         }        
     }
     
     public void SetActive(bool shouldEnable, JBConsoleState jbConsoleState)
     {
+        if (visibleRoot != null)
+        {
+            visibleRoot.SetActive(shouldEnable);
+        }
         if (toolbar != null)
         {
-            toolbar.SetActive(shouldEnable, jbConsoleState);
+            toolbar.SetState(jbConsoleState);
+        }
+
+        if (shouldEnable)
+        {
+            menus.SetState(jbConsoleState);
         }
     }
 
@@ -59,4 +69,5 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     {
         OnToolbarChanged(consoleMenu);            
     }
+    
 }

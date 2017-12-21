@@ -7,19 +7,32 @@ public delegate void JBConsoleMenuHandler();
 public delegate void JBCDrawBodyHandler(float width, float height, float scale = 1);
 public delegate void JBCLogSelectedHandler(ConsoleLog log);
 
+public struct JBConsoleStateMenuItem
+{
+	public enum Visual
+	{
+		Button,
+		Folder
+	}
+	
+	public string Text;
+	public bool ToggleValue;
+}
+
 public struct JBConsoleState
 {
-	public int CurrentTopMenuIndex;
-
+	public int CurrentToolbarIndex;
+	public JBConsoleStateMenuItem[] Menu;
+	
 	public ConsoleMenu? CurrentConsoleMenu
 	{
 		get
 		{
-			if (CurrentTopMenuIndex == -1)
+			if (CurrentToolbarIndex == -1)
 			{
 				return null;
 			}
-			return (ConsoleMenu) CurrentTopMenuIndex;
+			return (ConsoleMenu) CurrentToolbarIndex;
 		}
 	}
 }
@@ -96,17 +109,6 @@ public class JBConsole : MonoBehaviour
 			ExternalUIAction((ui) => ui.SetActive(_visible, state));
 	        
 			if (OnVisiblityChanged != null) OnVisiblityChanged();
-		}
-	}
-	
-	public JBConsoleState State
-	{
-		get
-		{
-			return new JBConsoleState()
-			{
-				CurrentTopMenuIndex = currentTopMenuIndex
-			};
 		}
 	}
 	
@@ -224,32 +226,40 @@ public class JBConsole : MonoBehaviour
         {
             index = -1;
         }
-        currentSubMenu = null;
         switch (index)
         {
             case (int)ConsoleMenu.Channels:
+	            currentSubMenu = null;
                 UpdateChannelsSubMenu();
                 subMenuHandler = OnChannelClicked;
                 break;
             case (int)ConsoleMenu.Levels:
+	            currentSubMenu = null;
                 UpdateLevelsSubMenu();
                 subMenuHandler = OnLevelClicked;
                 break;
             case (int)ConsoleMenu.Search:
+	            currentSubMenu = null;
                 searchTerm = "";
                 break;
             case (int)ConsoleMenu.Menu:
+	            currentSubMenu = null;
 				Menu.PopToRoot();
 				subMenuHandler = Menu.OnCurrentLinkClicked;
                 break;
             case (int)ConsoleMenu.Hide:
                 Visible = !Visible;
                 return;
+			case -1:
+				currentSubMenu = null;
+				break;
         }
 
 		EnsureScrollPosition();
         currentTopMenuIndex = index;
         currentTopMenu = SelectedStateArrayIndex(topMenu, index, true);
+
+	    UpdateExternalUIState();
     }
 
     void OnChannelClicked(int index)
@@ -731,6 +741,26 @@ public class JBConsole : MonoBehaviour
 		}
 		OnMenuSelection(selectionIndex);	
 	}
+
+	private void UpdateExternalUIState()
+	{
+		var state = State;
+		ExternalUIAction((ui) => ui.StateChanged(state));
+	}
+	
+	public JBConsoleState State
+	{
+		get
+		{
+			JBConsoleStateMenuItem[] menu = null;
+			return new JBConsoleState()
+			{
+				CurrentToolbarIndex = currentTopMenuIndex,
+				Menu = menu
+			};
+		}
+	}
+	
 }
 
 public enum ConsoleMenu

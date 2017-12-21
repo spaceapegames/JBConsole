@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class JBConsoleUIToolbarButton : JBConsoleUIToolbarChanger
 {
-    [SerializeField] private Button button;
+    [SerializeField] protected Button button;
     
     protected override void Awake()
     {
