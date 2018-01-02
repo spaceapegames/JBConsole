@@ -20,6 +20,9 @@ public class Main : MonoBehaviour
 		{
 			JBConsole.instance.BaseDPI -= 10;
 		});
+		
+		Logger.DebugCh("BLAH", "HELLO CHANNEL BLAH");
+		Logger.DebugCh("WEEE", "HELLO CHANNEL WEEE");
 	}
 
 }

@@ -7,12 +7,12 @@ using UnityEngine.UI;
 
 public class JBConsoleUIToolbar : MonoBehaviour
 {
-    [SerializeField] private JBConsoleUIToolbarChanger[] premadeToolbarButtons = null;    
-    [SerializeField] private JBConsoleUIToolbarChanger toolbarButtonPrefab = null;
+    [SerializeField] private JBConsoleUIToolbarButton[] premadeToolbarButtons = null;    
+    [SerializeField] private JBConsoleUIToolbarButton toolbarButtonPrefab = null;
 
     public Action<ConsoleMenu?> OnToolbarChanged = delegate { };
-    private Dictionary<ConsoleMenu, JBConsoleUIToolbarChanger> createdToolbarButtonsDict = new Dictionary<ConsoleMenu, JBConsoleUIToolbarChanger>();
-    private List<JBConsoleUIToolbarChanger> createdToolbarButtons = new List<JBConsoleUIToolbarChanger>();
+    private Dictionary<ConsoleMenu, JBConsoleUIToolbarButton> createdToolbarButtonsDict = new Dictionary<ConsoleMenu, JBConsoleUIToolbarButton>();
+    private List<JBConsoleUIToolbarButton> createdToolbarButtons = new List<JBConsoleUIToolbarButton>();
 
     private ConsoleMenu? currentConsoleMenu = null;
     
@@ -24,7 +24,7 @@ public class JBConsoleUIToolbar : MonoBehaviour
             {
                 if (premadeButton != null)
                 {
-                    premadeButton.OnToolbarButton += ToolbarButtonSelected;
+                    premadeButton.OnButton += ToolbarButtonSelected;
                 }
             }
         }
@@ -47,15 +47,15 @@ public class JBConsoleUIToolbar : MonoBehaviour
         return false;
     }
 
-    private void CreateTopBarButton(ConsoleMenu consoleMenu, JBConsoleUIToolbarChanger prefab)
+    private void CreateTopBarButton(ConsoleMenu consoleMenu, JBConsoleUIToolbarButton prefab)
     {
         if (prefab != null)
         {
             var toolbarButtonGO = Instantiate(prefab.gameObject, prefab.transform.parent, false) as GameObject;
             toolbarButtonGO.name = consoleMenu.ToString() + "_Toolbar";
-            var toolbarButton = toolbarButtonGO.GetComponent<JBConsoleUIToolbarChanger>();
+            var toolbarButton = toolbarButtonGO.GetComponent<JBConsoleUIToolbarButton>();
             toolbarButton.Setup(consoleMenu);
-            toolbarButton.OnToolbarButton += ToolbarButtonSelected;
+            toolbarButton.OnButton += ToolbarButtonSelected;
             createdToolbarButtons.Add(toolbarButton);
             createdToolbarButtonsDict.Add(consoleMenu, toolbarButton);
         }
@@ -67,7 +67,7 @@ public class JBConsoleUIToolbar : MonoBehaviour
         {
             if (toolbarButton != null)
             {
-                toolbarButton.OnToolbarButton -= ToolbarButtonSelected;
+                toolbarButton.OnButton -= ToolbarButtonSelected;
                 createdToolbarButtonsDict.Remove(toolbarButton.ConsoleMenuType);
 
                 Destroy(toolbarButton.gameObject);
@@ -97,7 +97,7 @@ public class JBConsoleUIToolbar : MonoBehaviour
         }
     }
 
-    private JBConsoleUIToolbarChanger GetPrefabForConsoleMenu(ConsoleMenu consoleMenu)
+    private JBConsoleUIToolbarButton GetPrefabForConsoleMenu(ConsoleMenu consoleMenu)
     {
         return toolbarButtonPrefab;
     }
@@ -110,7 +110,7 @@ public class JBConsoleUIToolbar : MonoBehaviour
             {
                 if (premadeButton != null)
                 {
-                    premadeButton.OnToolbarButton -= ToolbarButtonSelected;
+                    premadeButton.OnButton -= ToolbarButtonSelected;
                 }
             }
         }
@@ -138,16 +138,16 @@ public class JBConsoleUIToolbar : MonoBehaviour
             return;
         }
         
-        ConsoleMenu? currentConsoleMenuToLoad = jbConsoleState.CurrentConsoleMenu;
+        currentConsoleMenu = jbConsoleState.CurrentConsoleMenu;
 
-        JBConsoleUIToolbarChanger toolbarChanger = null;
+        JBConsoleUIToolbarButton button = null;
 
         SetAllTogglesOff();
         
         // if we should have something loaded then lets turn it on
-        if (currentConsoleMenuToLoad != null && createdToolbarButtonsDict.ContainsKey(currentConsoleMenuToLoad.Value))
+        if (currentConsoleMenu != null && createdToolbarButtonsDict.ContainsKey(currentConsoleMenu.Value))
         {
-            createdToolbarButtonsDict[currentConsoleMenuToLoad.Value].IsActive = true;
+            createdToolbarButtonsDict[currentConsoleMenu.Value].IsActive = true;
         }
 
     }

@@ -9,7 +9,7 @@ public delegate void JBCLogSelectedHandler(ConsoleLog log);
 
 public struct JBConsoleStateMenuItem
 {
-	public enum Visual
+	public enum VisualType
 	{
 		Button,
 		Folder
@@ -17,6 +17,8 @@ public struct JBConsoleStateMenuItem
 	
 	public string Text;
 	public bool ToggleValue;
+	public VisualType Visual;
+	public int Index;
 }
 
 public struct JBConsoleState
@@ -262,7 +264,7 @@ public class JBConsole : MonoBehaviour
 	    UpdateExternalUIState();
     }
 
-    void OnChannelClicked(int index)
+    public void OnChannelClicked(int index)
     {
         string channel = logger.Channels[index];
         if (channel == JBLogger.allChannelsName)
@@ -287,6 +289,7 @@ public class JBConsole : MonoBehaviour
         }
         UpdateChannelsSubMenu();
         clearCache();
+	    UpdateExternalUIState();
     }
 
 	private void HandleChannelAdded()
@@ -297,11 +300,12 @@ public class JBConsole : MonoBehaviour
 		}
 	}
 
-    void OnLevelClicked(int index)
+    public void OnLevelClicked(int index)
     {
         viewingLevel = (ConsoleLevel)Enum.GetValues(typeof(ConsoleLevel)).GetValue(index);
         UpdateLevelsSubMenu();
         clearCache();
+	    UpdateExternalUIState();
     }
 
     void UpdateChannelsSubMenu()
@@ -712,7 +716,8 @@ public class JBConsole : MonoBehaviour
 		if (!externalUIs.Contains(externalUI))
 		{
 			externalUIs.Add(externalUI);
-			externalUI.AddToolbarChangedListener(ExternalUIToolbarChanged);	
+			externalUI.AddToolbarButtonListener(ExternalUIToolbarButtonPressed);	
+			externalUI.AddMenuButtonListener(ExternalUIMenuButtonPressed);
 			externalUI.SetActive(_visible, State);
 		}		
 	}
@@ -726,12 +731,34 @@ public class JBConsole : MonoBehaviour
 
 		if (externalUIs.Contains(externalUI))
 		{
-			externalUI.RemoveToolbarChangedListener(ExternalUIToolbarChanged);		
+			externalUI.RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed);		
+			externalUI.RemoveMenuButtonListener(ExternalUIMenuButtonPressed);
 			externalUIs.Remove(externalUI);
 		}		
 	}
 	
-	private void ExternalUIToolbarChanged(ConsoleMenu? newConsoleMenu)
+	private void ExternalUIMenuButtonPressed(JBConsoleStateMenuItem menuItem)
+	{
+		switch (currentTopMenuIndex)
+		{
+			case (int)ConsoleMenu.Channels:
+			{
+				OnChannelClicked(menuItem.Index);
+			} break;
+				
+			case (int)ConsoleMenu.Levels:
+			{
+				OnLevelClicked(menuItem.Index);
+			} break;
+			
+			case (int)ConsoleMenu.Menu:
+			{
+				
+			} break;
+		}	
+	}
+	
+	private void ExternalUIToolbarButtonPressed(ConsoleMenu? newConsoleMenu)
 	{
 		Defocus();
 		int selectionIndex = -1;
@@ -748,11 +775,60 @@ public class JBConsole : MonoBehaviour
 		ExternalUIAction((ui) => ui.StateChanged(state));
 	}
 	
+	public JBConsoleStateMenuItem[] GetCurrentMenu()
+	{
+		JBConsoleStateMenuItem[] menu = null;
+		switch (currentTopMenuIndex)
+		{
+			case (int)ConsoleMenu.Channels:
+			{
+				var channels = logger.Channels.ToArray();
+				menu = new JBConsoleStateMenuItem[channels.Length];
+				var hasViewingChannels = viewingChannels != null && viewingChannels.Length > 0;
+				for (var i = 0; i < channels.Length; i++)
+				{
+					var currentlyViewingChannel = hasViewingChannels ? Array.IndexOf(viewingChannels, channels[i]) >= 0 : i == 0;
+
+					var menuItem = new JBConsoleStateMenuItem()
+					{
+						Text = channels[i],
+						ToggleValue = currentlyViewingChannel,
+						Visual = JBConsoleStateMenuItem.VisualType.Button,
+						Index = i,
+					};
+					menu[i] = menuItem;
+				}				
+			} break;
+				
+			case (int)ConsoleMenu.Levels:
+			{
+				menu = new JBConsoleStateMenuItem[levels.Length];
+				for (var i = 0; i < levels.Length; i++)
+				{
+					var menuItem = new JBConsoleStateMenuItem()
+					{
+						Text = levels[i],
+						ToggleValue = i == (int)viewingLevel,
+						Visual = JBConsoleStateMenuItem.VisualType.Button,
+						Index = i,
+					};
+					menu[i] = menuItem;
+				}				
+			} break;
+			
+			case (int)ConsoleMenu.Menu:
+			{
+				
+			} break;
+		}
+		return menu;	
+	}
+	
 	public JBConsoleState State
 	{
 		get
 		{
-			JBConsoleStateMenuItem[] menu = null;
+			JBConsoleStateMenuItem[] menu = GetCurrentMenu();
 			return new JBConsoleState()
 			{
 				CurrentToolbarIndex = currentTopMenuIndex,

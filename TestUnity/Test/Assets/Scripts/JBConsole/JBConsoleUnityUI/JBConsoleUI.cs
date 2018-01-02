@@ -9,16 +9,21 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
 {
     [SerializeField] private JBConsoleUIToolbar toolbar = null;
     [SerializeField] private JBConsoleUILog log = null;
-    [SerializeField] private JBConsoleUIMenus menus = null;
+    [SerializeField] private JBConsoleUIMenuController menus = null;
     [SerializeField] private GameObject visibleRoot = null;
 
-    private ExternalUIToolbarChanged OnToolbarChanged = delegate { };
+    private ExternalUIToolbarButtonPressed OnToolbarButton = delegate { };
+    private ExternalUIMenuButtonPressed OnMenuButton = delegate { };
 
     private void Awake()
     {
         if (toolbar != null)
         {
             toolbar.OnToolbarChanged += ToolbarButtonSelected;
+        }
+        if (menus != null)
+        {
+            menus.OnMenuItemSelected += MenuItemSelected;
         }
     }
 
@@ -28,6 +33,10 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         {
             toolbar.OnToolbarChanged -= ToolbarButtonSelected;
         }
+        if (menus != null)
+        {
+            menus.OnMenuItemSelected -= MenuItemSelected;
+        }
     }
 
     public void StateChanged(JBConsoleState jbConsoleState)
@@ -35,7 +44,11 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         if (toolbar != null)
         {
             toolbar.SetState(jbConsoleState);
-        }        
+        }
+        if (menus != null)
+        {
+            menus.SetState(jbConsoleState);            
+        }
     }
     
     public void SetActive(bool shouldEnable, JBConsoleState jbConsoleState)
@@ -44,30 +57,38 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         {
             visibleRoot.SetActive(shouldEnable);
         }
-        if (toolbar != null)
-        {
-            toolbar.SetState(jbConsoleState);
-        }
-
-        if (shouldEnable)
-        {
-            menus.SetState(jbConsoleState);
-        }
+        StateChanged(jbConsoleState);
     }
 
-    public void AddToolbarChangedListener(ExternalUIToolbarChanged listener)
+    public void AddToolbarButtonListener(ExternalUIToolbarButtonPressed listener)
     {
-        OnToolbarChanged += listener;
+        OnToolbarButton += listener;
     }
 
-    public void RemoveToolbarChangedListener(ExternalUIToolbarChanged listener)
+    public void RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed listener)
     {
-        OnToolbarChanged -= listener;        
+        OnToolbarButton -= listener;        
+    }
+
+    public void AddMenuButtonListener(ExternalUIMenuButtonPressed listener)
+    {
+        OnMenuButton += listener;
+    }
+
+    public void RemoveMenuButtonListener(ExternalUIMenuButtonPressed listener)
+    {
+        OnMenuButton -= listener;
     }
     
     private void ToolbarButtonSelected(ConsoleMenu? consoleMenu)
     {
-        OnToolbarChanged(consoleMenu);            
+        OnToolbarButton(consoleMenu);            
     }
+    
+    private void MenuItemSelected(JBConsoleStateMenuItem menuItem)
+    {
+        OnMenuButton(menuItem);
+    }
+
     
 }

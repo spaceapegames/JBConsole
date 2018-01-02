@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JBConsoleUIToolbarButton : MonoBehaviour
+public class JBConsoleUIMenuButton : MonoBehaviour
 {
     [SerializeField] protected Button button;
-    [SerializeField] protected ConsoleMenu menuType;
     [SerializeField] protected Text label;
 
-    protected bool isActive = false;
+    protected bool toggleValue = false;
+    protected JBConsoleStateMenuItem menuItem;
     
-    public ConsoleMenu ConsoleMenuType { get { return menuType; }}
-    public System.Action<ConsoleMenu?> OnButton = delegate {};
+    public JBConsoleStateMenuItem MenuItem { get { return menuItem; }}
+    public System.Action<JBConsoleStateMenuItem> OnButton = delegate {};
     
     protected virtual void Awake()
     {
@@ -27,27 +27,28 @@ public class JBConsoleUIToolbarButton : MonoBehaviour
     {
         gameObject.SetActive(active);   
     }
-    
-    public void Setup(ConsoleMenu menuType)
+
+    public void Setup(JBConsoleStateMenuItem menuItem)
     {
-        this.menuType = menuType;
+        this.menuItem = menuItem;
+        ToggleValue = menuItem.ToggleValue;
         SetupLabel();
     }
-
+    
     private void SetupLabel()
     {
         if (label != null)
         {
-            label.text = menuType.ToString().ToUpper();
+            label.text = menuItem.Text;
         }
     }
 
-    public virtual bool IsActive
+    public virtual bool ToggleValue
     {
-        get { return isActive; }
+        get { return toggleValue; }
         set
         {
-            isActive = value; 
+            toggleValue = value; 
             IsActiveChanged();
         }
     }
@@ -59,7 +60,7 @@ public class JBConsoleUIToolbarButton : MonoBehaviour
     
     private void ButtonClicked()
     {
-        OnButton(menuType);
+        OnButton(menuItem);
     }
 
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class JBConsoleUIToolbarColorButton : JBConsoleUIToolbarButton
+public class JBConsoleUIMenuButtonColor : JBConsoleUIMenuButton
 {
     [SerializeField] private Image imageToColor = null;
     [SerializeField] private Color activeColor = Color.yellow;
@@ -19,12 +19,12 @@ public class JBConsoleUIToolbarColorButton : JBConsoleUIToolbarButton
     {
         if (imageToColor != null)
         {
-            imageToColor.color = isActive ? activeColor : inactiveColor;
+            imageToColor.color = toggleValue ? activeColor : inactiveColor;
         }
         if (button != null)
         {
             var colors = button.colors;
-            colors.normalColor = isActive ? activeColor : inactiveColor;
+            colors.normalColor = toggleValue ? activeColor : inactiveColor;
             button.colors = colors;
         }
     }
