@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Main : MonoBehaviour 
+public class Main : MonoBehaviour
 {
+	private bool toggle1 = false;
+	
 	private void Start () 
 	{
 		JBConsole.AddMenu("Root B1", () =>
@@ -11,18 +13,18 @@ public class Main : MonoBehaviour
 			Logger.Debug("Root B1");
 		});
 		
-		JBConsole.AddMenu("Console/zoom--", delegate
+		JBConsole.AddToggle("Root T1", delegate
 		{
-			JBConsole.instance.BaseDPI += 10;
+			toggle1 = !toggle1;
+		}, delegate
+		{
+			return toggle1;
 		});
 
-		JBConsole.AddMenu("Console/zoom++", delegate
-		{
-			JBConsole.instance.BaseDPI -= 10;
-		});
 		
 		Logger.DebugCh("BLAH", "HELLO CHANNEL BLAH");
-		Logger.DebugCh("WEEE", "HELLO CHANNEL WEEE");
+		Logger.WarnCh("WEEE", "HELLO CHANNEL WEEE");
+		Logger.ErrorCh("MOOO", 0, "HELLO CHANNEL MOOO");
 	}
 
 }

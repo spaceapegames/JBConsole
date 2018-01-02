@@ -21,8 +21,8 @@ public class JBCEmail : MonoBehaviour
 	void Awake ()
 	{
 		console = GetComponent<JBConsole>();
-        if (console != null) console.Menu.Add("Email", SendEmail);
-        if (console != null) console.Menu.Add("dev/Set Email", SetEmail);
+        if (console != null) console.Menu.AddButton("Email", SendEmail);
+        if (console != null) console.Menu.AddButton("dev/Set Email", SetEmail);
 	}
 
     public void SetEmail()

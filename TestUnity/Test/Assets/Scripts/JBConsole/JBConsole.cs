@@ -12,13 +12,16 @@ public struct JBConsoleStateMenuItem
 	public enum VisualType
 	{
 		Button,
-		Folder
+		Toggle,
+		Folder,
+		ParentFolder,
 	}
 	
 	public string Text;
 	public bool ToggleValue;
 	public VisualType Visual;
 	public int Index;
+	public JBCustomMenu.MenuItem MenuItem;
 }
 
 public struct JBConsoleState
@@ -71,7 +74,7 @@ public class JBConsole : MonoBehaviour
 	public static void AddMenu(string name, Action callback)
     {
         if (!Exists) return;
-		instance.Menu.Add(name, callback);
+		instance.Menu.AddButton(name, callback);
     }
 
     public static void RemoveMenu(string name)
@@ -80,6 +83,11 @@ public class JBConsole : MonoBehaviour
 		instance.Menu.Remove(name);
     }
 
+	public static void AddToggle(string name, Action toggleCallback, Func<bool> getterCallback)
+	{
+		if (!Exists) return;
+		instance.Menu.AddToggle(name, toggleCallback, getterCallback);
+	}
 	
 	private JBLogger logger;
 	public Font Font { get; private set; }
@@ -165,7 +173,7 @@ public class JBConsole : MonoBehaviour
 		Menu = new JBCustomMenu();
         levels = Enum.GetNames(typeof(ConsoleLevel));
         topMenu = currentTopMenu = Enum.GetNames(typeof(ConsoleMenu));
-		Menu.Add("Clear", Clear);
+		Menu.AddButton("Clear", Clear);
 	}
 
 	private void OnDestroy()
@@ -419,7 +427,8 @@ public class JBConsole : MonoBehaviour
 		{
 			currentSubMenu = Menu.GetCurrentMenuLink();
 		}
-        if (currentSubMenu != null)
+        
+	    if (currentSubMenu != null)
         {
 			if(currentSubMenu.Length == 0)
 			{
@@ -753,7 +762,8 @@ public class JBConsole : MonoBehaviour
 			
 			case (int)ConsoleMenu.Menu:
 			{
-				
+				Menu.OnCurrentLinkClicked(menuItem.Index);
+				UpdateExternalUIState();
 			} break;
 		}	
 	}
@@ -793,7 +803,7 @@ public class JBConsole : MonoBehaviour
 					{
 						Text = channels[i],
 						ToggleValue = currentlyViewingChannel,
-						Visual = JBConsoleStateMenuItem.VisualType.Button,
+						Visual = JBConsoleStateMenuItem.VisualType.Toggle,
 						Index = i,
 					};
 					menu[i] = menuItem;
@@ -809,7 +819,7 @@ public class JBConsole : MonoBehaviour
 					{
 						Text = levels[i],
 						ToggleValue = i == (int)viewingLevel,
-						Visual = JBConsoleStateMenuItem.VisualType.Button,
+						Visual = JBConsoleStateMenuItem.VisualType.Toggle,
 						Index = i,
 					};
 					menu[i] = menuItem;
@@ -818,7 +828,74 @@ public class JBConsole : MonoBehaviour
 			
 			case (int)ConsoleMenu.Menu:
 			{
-				
+				var currentMenuItem = Menu.GetCurrentMenuItem();
+				if (currentMenuItem != null)
+				{
+					var menuItems = new List<JBConsoleStateMenuItem>();
+					var startIndex = 0;
+					if (currentMenuItem.HasParent())
+					{
+						menuItems.Add(new JBConsoleStateMenuItem()
+						{
+							Text = "<<",
+							ToggleValue = false,
+							Visual = JBConsoleStateMenuItem.VisualType.ParentFolder,
+							Index = 0,
+						});
+						startIndex++;
+					}
+					if (currentMenuItem.Children != null)
+					{
+						for (var i = 0; i < currentMenuItem.Children.Count; i++)
+						{
+							var childItem = currentMenuItem.Children[i];
+							var visualType = JBConsoleStateMenuItem.VisualType.Button;
+							if (childItem.HasChildren())
+							{
+								visualType = JBConsoleStateMenuItem.VisualType.Folder;
+							}
+							else if (childItem.ItemType == JBCustomMenu.MenuItem.MenuItemType.Toggle)
+							{
+								visualType = JBConsoleStateMenuItem.VisualType.Toggle;
+							}
+							menuItems.Add(new JBConsoleStateMenuItem()
+							{
+								Text = childItem.GetRawLinkName(),
+								ToggleValue = childItem.GetToggleValue(),
+								Visual = visualType,
+								Index = startIndex + i,
+								MenuItem = childItem,
+							});
+						}
+					}
+					menu = menuItems.ToArray();
+				}
+				else
+				{
+					menu = new JBConsoleStateMenuItem[0];
+				}
+				/*
+				var currentMenus = Menu.GetCurrentMenuLink();
+				if (currentMenus != null)
+				{
+					menu = new JBConsoleStateMenuItem[currentMenus.Length];
+					for (var i = 0; i < currentMenus.Length; i++)
+					{
+						var menuItem = new JBConsoleStateMenuItem()
+						{
+							Text = currentMenus[i],
+							ToggleValue = false,
+							Visual = JBConsoleStateMenuItem.VisualType.Button,
+							Index = i,
+						};
+						menu[i] = menuItem;
+					}
+				}
+				else
+				{
+					menu = new JBConsoleStateMenuItem[0];
+				}
+				*/
 			} break;
 		}
 		return menu;	

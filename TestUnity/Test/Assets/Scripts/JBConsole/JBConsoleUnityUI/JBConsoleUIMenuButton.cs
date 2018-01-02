@@ -6,17 +6,19 @@ using UnityEngine.UI;
 public class JBConsoleUIMenuButton : MonoBehaviour
 {
     [SerializeField] protected Button button;
-    [SerializeField] protected Text label;
+    [SerializeField] protected Text[] labels;
 
     protected bool toggleValue = false;
     protected JBConsoleStateMenuItem menuItem;
     
     public JBConsoleStateMenuItem MenuItem { get { return menuItem; }}
+    public Button Button { get { return button; }}
     public System.Action<JBConsoleStateMenuItem> OnButton = delegate {};
+    public System.Action<JBConsoleUIMenuButton> OnRefreshVisuals = delegate {};
     
     protected virtual void Awake()
     {
-        SetupLabel();
+        SetupLabels();
         if (button != null)
         {
             button.onClick.AddListener(ButtonClicked);
@@ -32,21 +34,28 @@ public class JBConsoleUIMenuButton : MonoBehaviour
     {
         this.menuItem = menuItem;
         ToggleValue = menuItem.ToggleValue;
-        SetupLabel();
+        SetupLabels();
+        OnRefreshVisuals(this);
     }
     
-    private void SetupLabel()
+    private void SetupLabels()
     {
-        if (label != null)
+        if (labels != null)
         {
-            label.text = menuItem.Text;
+            for (var i = 0; i < labels.Length; i++)
+            {
+                if (labels[i] != null)
+                {
+                    labels[i].text = menuItem.Text;
+                }                
+            }
         }
     }
 
     public virtual bool ToggleValue
     {
         get { return toggleValue; }
-        set
+        private set
         {
             toggleValue = value; 
             IsActiveChanged();
@@ -55,7 +64,7 @@ public class JBConsoleUIMenuButton : MonoBehaviour
 
     protected virtual void IsActiveChanged()
     {
-        
+        OnRefreshVisuals(this);
     }   
     
     private void ButtonClicked()

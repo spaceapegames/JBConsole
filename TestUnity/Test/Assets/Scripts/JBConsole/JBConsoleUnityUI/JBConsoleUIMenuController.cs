@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class JBConsoleUIMenuController : MonoBehaviour
 {
     [SerializeField] private JBConsoleUIMenu smallButtonMenuPrefab = null;
+    [SerializeField] private JBConsoleUIMenu largeButtonMenuPrefab = null;
     
     public Action<JBConsoleStateMenuItem> OnMenuItemSelected = delegate { };
 
@@ -20,6 +21,10 @@ public class JBConsoleUIMenuController : MonoBehaviour
         if (smallButtonMenuPrefab != null)
         {
             smallButtonMenuPrefab.gameObject.SetActive(false);
+        }
+        if (largeButtonMenuPrefab != null)
+        {
+            largeButtonMenuPrefab.gameObject.SetActive(false);
         }
     }
 
@@ -51,8 +56,11 @@ public class JBConsoleUIMenuController : MonoBehaviour
                 {
                     case ConsoleMenu.Levels:
                     case ConsoleMenu.Channels:
+                        loadedMenu = CreateMenu(smallButtonMenuPrefab, jbConsoleState.Menu);
+                        break;
+
                     case ConsoleMenu.Menu:
-                        loadedMenu = CreateMenu(jbConsoleState.Menu);
+                        loadedMenu = CreateMenu(largeButtonMenuPrefab, jbConsoleState.Menu);
                         break;
                 }
             }            
@@ -67,22 +75,22 @@ public class JBConsoleUIMenuController : MonoBehaviour
         }
     }
     
-    private JBConsoleUIMenu CreateMenu(JBConsoleStateMenuItem[] menu)
+    private JBConsoleUIMenu CreateMenu(JBConsoleUIMenu menuPrefab, JBConsoleStateMenuItem[] menu)
     {
-        if (smallButtonMenuPrefab == null)
+        if (menuPrefab == null)
         {
             return null;
         }
         
-        smallButtonMenuPrefab.gameObject.SetActive(true);
+        menuPrefab.gameObject.SetActive(true);
 
-        var menuGO = Instantiate(smallButtonMenuPrefab.gameObject);
+        var menuGO = Instantiate(menuPrefab.gameObject);
         var menuUI = menuGO.GetComponent<JBConsoleUIMenu>();
         menuUI.Setup(menu);
         menuUI.OnMenuItemSelected += MenuItemSelected;
-        menuGO.transform.SetParent(smallButtonMenuPrefab.transform.parent, false);
+        menuGO.transform.SetParent(menuPrefab.transform.parent, false);
         
-        smallButtonMenuPrefab.gameObject.SetActive(false);
+        menuPrefab.gameObject.SetActive(false);
 
         return menuUI;
     }

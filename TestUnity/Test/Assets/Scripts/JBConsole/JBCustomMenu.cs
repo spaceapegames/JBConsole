@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.Text.RegularExpressions;
+using UnityEditor.ProjectWindowCallback;
 
 [System.Serializable]
 public class JBCustomMenu
@@ -17,10 +18,17 @@ public class JBCustomMenu
 		root.Children = new List<MenuItem>();
 	}
 	
-	public void Add(string name, Action callback)
+	public void AddButton(string name, Action activateCallback)
 	{
 		if(string.IsNullOrEmpty(name)) return;
-		root.AddPath(GetPath(name), 0, callback);
+		root.AddButtonPath(GetPath(name), 0, activateCallback);
+		currentLinks = null;
+	}
+	
+	public void AddToggle(string name, Action activateCallback, Func<bool> getValueCallback)
+	{
+		if(string.IsNullOrEmpty(name)) return;
+		root.AddTogglePath(GetPath(name), 0, activateCallback, getValueCallback);
 		currentLinks = null;
 	}
 	
@@ -37,6 +45,11 @@ public class JBCustomMenu
 		currentMenu = root;
 	}
 
+	public MenuItem GetCurrentMenuItem()
+	{
+		return currentMenu;
+	}
+	
 	public string[] GetCurrentMenuLink()
 	{
 		if(currentLinks == null)
@@ -71,21 +84,38 @@ public class JBCustomMenu
 
 
 
-	class MenuItem
+	public class MenuItem
 	{
-
+		public enum MenuItemType
+		{
+			Button,
+			Toggle
+		}
+		
 		public string Name;
-		public Action Callback;
+		public Action ActivateCallback;
+		public Func<bool> GetValueCallback;
 		public List<MenuItem> Children;
-
+		public MenuItemType ItemType;
+		
 		MenuItem parent;
 
 		public MenuItem(string name)
 		{
 			Name = name;
 		}
+
+		public void AddButtonPath(string[] path, int pathIndex, Action activateCallback)
+		{
+			AddPath(path, pathIndex, MenuItemType.Button, activateCallback, null);
+		}
+
+		public void AddTogglePath(string[] path, int pathIndex, Action activateCallback, Func<bool> getValueCallback)
+		{
+			AddPath(path, pathIndex, MenuItemType.Toggle, activateCallback, getValueCallback);			
+		}
 		
-		public void AddPath(string[] path, int pathIndex, Action callback)
+		public void AddPath(string[] path, int pathIndex, MenuItemType itemType, Action activateCallback, Func<bool> getValueCallback)
 		{
 			var part = path[pathIndex];
 			var child = FindChild(part);
@@ -97,11 +127,12 @@ public class JBCustomMenu
 
 			if(PathIndexHasChild(path, pathIndex))
 			{
-				child.AddPath(path, pathIndex + 1, callback);
+				child.AddPath(path, pathIndex + 1, itemType, activateCallback, getValueCallback);
 			}
 			else
 			{
-				child.SetCallback(callback);
+				child.ItemType = itemType;
+				child.SetCallbacks(activateCallback, getValueCallback);
 			}
 		}
 		
@@ -136,27 +167,44 @@ public class JBCustomMenu
 			return Children != null ? Children.Find(m => m.Name == n) : null;
 		}
 		
-		void SetCallback(Action callback)
+		void SetCallbacks(Action activateCallback, Func<bool> getValueCallback)
 		{
-			Callback = callback;
+			ActivateCallback = activateCallback;
+			GetValueCallback = getValueCallback;
 			Children = null;
 		}
 
 		void AddChild(MenuItem child)
 		{
-			Callback = null;
+			ActivateCallback = null;
 			if(Children == null) Children = new List<MenuItem>();
 			Children.Add(child);
 			child.parent = this;
 		}
+
+		public string GetRawLinkName()
+		{
+			return Name;
+		}
+
+		public bool GetToggleValue()
+		{
+			return GetValueCallback != null && GetValueCallback();
+		}
 		
 		public string GetLinkName()
 		{
-			if(Children != null && Children.Count > 0)
+			var name = Name;
+			if (ItemType == MenuItemType.Toggle)
 			{
-				return Name + " /";
+				var enabled = GetValueCallback != null && GetValueCallback();
+				name = enabled ? ("☑ " + name) : ("☐ " + name);
 			}
-			return Name;
+			if(HasChildren())
+			{
+				return name + " /";
+			}
+			return name;
 		}
 
 		public string[] GetLinks()
@@ -169,6 +217,22 @@ public class JBCustomMenu
 			}
 			return links.ToArray();
 		}
+
+		public bool HasChildren()
+		{
+			return Children != null && Children.Count > 0;
+		}
+		
+		public bool HasParent()
+		{
+			return parent != null;
+		}
+		
+		public bool IsParentPath(int index)
+		{
+			if(parent != null) index--;
+			return (index < 0 || index >= Children.Count);
+		}
 		
 		public MenuItem OnChildClicked(int index)
 		{
@@ -178,9 +242,9 @@ public class JBCustomMenu
 		    //try
 		    {
                 var child = Children[index];
-                if (child.Callback != null)
+                if (child.ActivateCallback != null)
                 {
-                    child.Callback();
+                    child.ActivateCallback();
                     return this;
                 }
                 else
