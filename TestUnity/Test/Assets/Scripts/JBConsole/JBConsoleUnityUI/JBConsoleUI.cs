@@ -11,10 +11,12 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     [SerializeField] private JBConsoleUILog log = null;
     [SerializeField] private JBConsoleUIMenuController menus = null;
     [SerializeField] private GameObject visibleRoot = null;
-
+    [SerializeField] private JBConsoleUISearch search;
+    
     private ExternalUIToolbarButtonPressed OnToolbarButton = delegate { };
     private ExternalUIMenuButtonPressed OnMenuButton = delegate { };
-
+    private ExternalUISearchTermChanged OnSearchTermChanged = delegate { };
+    
     private void Awake()
     {
         if (toolbar != null)
@@ -24,6 +26,10 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         if (menus != null)
         {
             menus.OnMenuItemSelected += MenuItemSelected;
+        }
+        if (search != null)
+        {
+            search.searchChanged += SearchChanged;
         }
     }
 
@@ -37,6 +43,10 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         {
             menus.OnMenuItemSelected -= MenuItemSelected;
         }
+        if (search != null)
+        {
+            search.searchChanged -= SearchChanged;
+        }
     }
 
     public void StateChanged(JBConsoleState jbConsoleState)
@@ -48,6 +58,10 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         if (menus != null)
         {
             menus.SetState(jbConsoleState);            
+        }
+        if (search != null)
+        {
+            search.SetState(jbConsoleState);
         }
     }
     
@@ -79,6 +93,16 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     {
         OnMenuButton -= listener;
     }
+
+    public void AddSearchTermChangedListener(ExternalUISearchTermChanged listener)
+    {
+        OnSearchTermChanged += listener;
+    }
+
+    public void RemoveSearchTermChangedListener(ExternalUISearchTermChanged listener)
+    {
+        OnSearchTermChanged -= listener;
+    }
     
     private void ToolbarButtonSelected(ConsoleMenu? consoleMenu)
     {
@@ -90,5 +114,9 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         OnMenuButton(menuItem);
     }
 
-    
+    private void SearchChanged(string searchTerm)
+    {
+        Debug.Log("SearchChanged - " + searchTerm);
+        OnSearchTermChanged(searchTerm);
+    }
 }

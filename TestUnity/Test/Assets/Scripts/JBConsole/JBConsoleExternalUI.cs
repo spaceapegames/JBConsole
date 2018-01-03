@@ -1,6 +1,7 @@
 ﻿
 public delegate void ExternalUIToolbarButtonPressed(ConsoleMenu? newConsoleMenu);
 public delegate void ExternalUIMenuButtonPressed(JBConsoleStateMenuItem menuItem);
+public delegate void ExternalUISearchTermChanged(string searchTerm);
 
 public interface JBConsoleExternalUI
 {
@@ -9,5 +10,7 @@ public interface JBConsoleExternalUI
     void RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed listener);
     void AddMenuButtonListener(ExternalUIMenuButtonPressed listener);
     void RemoveMenuButtonListener(ExternalUIMenuButtonPressed listener);
+    void AddSearchTermChangedListener(ExternalUISearchTermChanged listener);
+    void RemoveSearchTermChangedListener(ExternalUISearchTermChanged listener);    
     void StateChanged(JBConsoleState state);
 }

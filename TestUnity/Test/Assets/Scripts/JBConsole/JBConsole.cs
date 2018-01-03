@@ -28,6 +28,7 @@ public struct JBConsoleState
 {
 	public int CurrentToolbarIndex;
 	public JBConsoleStateMenuItem[] Menu;
+	public string SearchTerm;
 	
 	public ConsoleMenu? CurrentConsoleMenu
 	{
@@ -250,7 +251,7 @@ public class JBConsole : MonoBehaviour
                 break;
             case (int)ConsoleMenu.Search:
 	            currentSubMenu = null;
-                searchTerm = "";
+                //searchTerm = "";
                 break;
             case (int)ConsoleMenu.Menu:
 	            currentSubMenu = null;
@@ -647,7 +648,7 @@ public class JBConsole : MonoBehaviour
 	{
 		return (log.level >= viewingLevel 
 			&& (viewingChannels == null || Array.IndexOf(viewingChannels, log.channel) >= 0)
-	        && (searchTerm == "" || log.message.ToLower().Contains(searchTerm)));
+	        && (searchTerm == "" || log.message.ToLower().Contains(searchTerm.ToLower())));
 	}
 	
 	void CacheBottomOfLogs(float width, float height)
@@ -727,6 +728,7 @@ public class JBConsole : MonoBehaviour
 			externalUIs.Add(externalUI);
 			externalUI.AddToolbarButtonListener(ExternalUIToolbarButtonPressed);	
 			externalUI.AddMenuButtonListener(ExternalUIMenuButtonPressed);
+			externalUI.AddSearchTermChangedListener(ExternalUISearchTermChanged);
 			externalUI.SetActive(_visible, State);
 		}		
 	}
@@ -742,6 +744,7 @@ public class JBConsole : MonoBehaviour
 		{
 			externalUI.RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed);		
 			externalUI.RemoveMenuButtonListener(ExternalUIMenuButtonPressed);
+			externalUI.RemoveSearchTermChangedListener(ExternalUISearchTermChanged);
 			externalUIs.Remove(externalUI);
 		}		
 	}
@@ -779,6 +782,11 @@ public class JBConsole : MonoBehaviour
 		OnMenuSelection(selectionIndex);	
 	}
 
+	private void ExternalUISearchTermChanged(string searchTerm)
+	{
+		this.searchTerm = searchTerm;
+	}	
+	
 	private void UpdateExternalUIState()
 	{
 		var state = State;
@@ -909,6 +917,7 @@ public class JBConsole : MonoBehaviour
 			return new JBConsoleState()
 			{
 				CurrentToolbarIndex = currentTopMenuIndex,
+				SearchTerm = searchTerm,
 				Menu = menu
 			};
 		}
