@@ -251,7 +251,6 @@ public class JBConsole : MonoBehaviour
                 break;
             case (int)ConsoleMenu.Search:
 	            currentSubMenu = null;
-                //searchTerm = "";
                 break;
             case (int)ConsoleMenu.Menu:
 	            currentSubMenu = null;

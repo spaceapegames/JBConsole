@@ -37,6 +37,10 @@ public class JBLogger
     public List<ConsoleLog> Logs { get{return logs;} }
 	public int stateHash { get { return _stateHash;} } // or just use delegate?
 
+    public Action OnLogsCleared = delegate { };
+    public Action<int> OnLogRemoved = delegate { };
+    public Action<ConsoleLog> OnLogAdded = delegate { };
+    
 	private static JBLogger _instance;
 
 	public static JBLogger instance
@@ -272,6 +276,7 @@ public class JBLogger
             if(RecordStackTrace) log.stackTrace = new StackTrace(3, true);
 
             logs.Add(log);
+            OnLogAdded(log);
             if (!channels.Contains(log.channel))
             {
                 channels.Add(log.channel);
@@ -283,6 +288,7 @@ public class JBLogger
             if (count >= maxLogs)
             {
                 logs.RemoveAt(0);
+                OnLogRemoved(0);
             }
             Changed();
         }
@@ -292,6 +298,7 @@ public class JBLogger
 	{
 		ResetChannels();
 		logs.Clear();
+	    OnLogsCleared();
 		Changed();
 	}
 
