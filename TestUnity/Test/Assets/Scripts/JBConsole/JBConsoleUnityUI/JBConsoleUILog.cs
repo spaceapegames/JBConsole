@@ -7,12 +7,29 @@ using UnityEngine.UI;
 
 public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 {
+    private class ConsoleLogDetails
+    {
+        public ConsoleLog log;
+        public float? height;
+
+        public void ClearHeight()
+        {
+            height = null;
+        }
+
+        public void SetHeight(float height)
+        {
+            this.height = height;
+        }
+    }
+    
     [SerializeField] private PooledList logUI = null;
     [SerializeField] private JBConsoleUILogItem logItemPrefab = null;
 
-    private List<ConsoleLog> logs;
+//    private List<ConsoleLog> logs;
+    private List<ConsoleLogDetails> logs;
     private Vector2 logUISize = Vector2.zero;
-
+    
     private void Awake()
     {
         var logger = JBLogger.instance;
@@ -20,7 +37,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         logger.OnLogAdded += LogAdded;
         logger.OnLogsCleared += LogsCleared;
         
-        logs = new List<ConsoleLog>(logger.maxLogs);
+        logs = new List<ConsoleLogDetails>(logger.maxLogs);
         
         if (logUI != null)
         {
@@ -47,7 +64,18 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     private void PopulateList()
     {
         logs.Clear();
-        logs.AddRange(JBLogger.instance.Logs);
+        var loggerLogs = JBLogger.instance.Logs;
+        if (loggerLogs != null)
+        {
+            for (var i = 0; i < loggerLogs.Count; i++)
+            {
+                logs.Add(new ConsoleLogDetails()
+                {
+                    log = loggerLogs[i],
+                    height = null
+                });
+            }            
+        }
         
         // calculate the sizes of the logs
 
@@ -59,6 +87,12 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         if (logUISize != this.logUISize)
         {
             this.logUISize = logUISize;
+
+            for (var i = 0; i < logs.Count; i++)
+            {
+                logs[i].ClearHeight();
+            }
+            
             RefreshLogUI();
         }
     }
@@ -89,10 +123,18 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
     private void LogAdded(ConsoleLog consoleLog)
     {
-        logs.Add(consoleLog);
-        Debug.Log("LogAdded "+consoleLog.message);
+        logs.Add(new ConsoleLogDetails()
+        {
+            log = consoleLog,
+            height = null
+        });
         
-        RefreshLogUI();
+        Debug.Log("LogAdded "+consoleLog.message);
+
+        if (logUI != null)
+        {
+            logUI.RefreshForNewItemsAtTheEnd();
+        }
     }
 
     public int GetNumListItems()
@@ -106,7 +148,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         
         var instantiatedItem = Instantiate(logItemPrefab);
         instantiatedItem.OnItemRecycled += LogItemRecycled;
-        instantiatedItem.Setup(logs[index], logUISize.x);
+        instantiatedItem.Setup(logs[index].log, logUISize.x);
         
         logItemPrefab.gameObject.SetActive(false);
         return instantiatedItem;
@@ -114,7 +156,11 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
     public float GetListItemHeight(int index)
     {
-        return logItemPrefab.GetPreferredHeight(logs[index], logUISize.x);
+        if (!logs[index].height.HasValue)
+        {
+            logs[index].SetHeight(logItemPrefab.GetPreferredHeight(logs[index].log, logUISize.x));
+        }
+        return logs[index].height.Value;
     }
 
     private void LogItemRecycled(JBConsoleUILogItem logItem)

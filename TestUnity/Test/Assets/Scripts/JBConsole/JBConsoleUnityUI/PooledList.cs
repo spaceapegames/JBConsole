@@ -29,6 +29,7 @@ public class PooledList : MonoBehaviour
     private float windowMax = 0;
     private float contentHeight = 0;
     private RectTransform rectTransform = null;
+    private bool sizeChanged = false;
 
     public Action<Vector2> listSizeChanged = delegate { };
 
@@ -106,7 +107,25 @@ public class PooledList : MonoBehaviour
         topMenuItemIndex = -1;
         DestroyAllListItems();
         RefreshVisibleListItems();
+    }
 
+    public void RefreshForNewItemsAtTheEnd()
+    {
+        var numListItems = listProvider.GetNumListItems();
+        float yPosition = 0;
+        if (listItemPositions.Count > 0)
+        {
+            yPosition = listItemPositions[listItemPositions.Count - 1];            
+        }
+        for (var i = listItemPositions.Count; i < numListItems; i++)
+        {
+            listItemPositions.Add(yPosition);
+            yPosition += listProvider.GetListItemHeight(i);
+        }
+        
+        SetScrollingContentHeight(yPosition);
+        
+        RefreshVisibleListItems();        
     }
 
     private int topMenuItemIndex = -1;
@@ -324,8 +343,6 @@ public class PooledList : MonoBehaviour
 
         }
     }
-
-    private bool sizeChanged = false;
     
     private void OnRectTransformDimensionsChange()
     {
