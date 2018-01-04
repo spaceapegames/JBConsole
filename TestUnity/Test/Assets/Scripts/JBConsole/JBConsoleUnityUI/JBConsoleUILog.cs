@@ -111,6 +111,10 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
         Debug.Log("LogRemoved " + logIndex);
 
+        if (logUI != null)
+        {
+            logUI.ItemRemoved(logIndex);
+        }
         RefreshLogUI();
     }
 
@@ -133,7 +137,8 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
         if (logUI != null)
         {
-            logUI.RefreshForNewItemsAtTheEnd();
+            logUI.ItemAddedToEnd();
+//            logUI.Refresh();
         }
     }
 

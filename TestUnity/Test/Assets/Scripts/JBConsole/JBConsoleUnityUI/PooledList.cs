@@ -91,6 +91,26 @@ public class PooledList : MonoBehaviour
         UpdateVisibleWindow();
     }
 
+    public void ItemRemoved(int itemIndex)
+    {
+        // remove last from positions and recalculate from the changed point
+        listItemPositions.RemoveAt(listItemPositions.Count - 1);
+        var numListItems = listProvider.GetNumListItems();
+
+        var yPosition = listItemPositions[itemIndex];
+        for (var i = itemIndex; i < numListItems; i++)
+        {
+            listItemPositions[i] = yPosition;
+            yPosition += listProvider.GetListItemHeight(i);
+        }
+        
+        SetScrollingContentHeight(yPosition);
+
+        topMenuItemIndex = -1;
+        DestroyAllListItems();
+        RefreshVisibleListItems();        
+    }
+    
     public void Refresh()
     {
         listItemPositions.Clear();
@@ -109,13 +129,15 @@ public class PooledList : MonoBehaviour
         RefreshVisibleListItems();
     }
 
-    public void RefreshForNewItemsAtTheEnd()
+    public void ItemAddedToEnd()
     {
         var numListItems = listProvider.GetNumListItems();
         float yPosition = 0;
         if (listItemPositions.Count > 0)
         {
-            yPosition = listItemPositions[listItemPositions.Count - 1];            
+            var lastIndex = listItemPositions.Count - 1;
+            yPosition = listItemPositions[lastIndex];            
+            yPosition += listProvider.GetListItemHeight(lastIndex);
         }
         for (var i = listItemPositions.Count; i < numListItems; i++)
         {
@@ -176,10 +198,7 @@ public class PooledList : MonoBehaviour
             var itemRectTransform = menuItem.GetRectTransform();
             itemRectTransform.SetParent(scrollingContent, false);
             var itemPosition = itemRectTransform.anchoredPosition;
-            itemPosition.y = (contentHeight * 0.5f);
-            var yPosition = listItemPositions[index];
-            itemPosition.y -= yPosition;
-            itemPosition.y -= (itemRectTransform.rect.height * 0.5f);
+            itemPosition.y = -listItemPositions[index];
             itemRectTransform.anchoredPosition = itemPosition;
         }
         return menuItem;

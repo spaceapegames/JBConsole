@@ -69,6 +69,25 @@ public class Main : MonoBehaviour
 			}
 			Logger.DebugCh("BLAH", text);
 		}
+		
+		//StartCoroutine(SlowLogger());
 	}
 
+	IEnumerator SlowLogger()
+	{
+		int count = 0;
+		while (true)
+		{
+			Logger.DebugCh("SLOW", "LOG "+(count++));
+			yield return new WaitForSeconds(2.0f);
+		}
+	}
+	
+	private void Update()
+	{
+		if (Input.GetKeyDown(KeyCode.B))
+		{
+			Logger.DebugCh("SLOW", "LOG " + System.DateTime.Now.ToFileTime().ToString());
+		}
+	}
 }
