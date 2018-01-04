@@ -165,6 +165,20 @@ public class PooledList : MonoBehaviour
         }
         return menuItem;
     }
+
+    private float FindMenuItemEndPosition(int index)
+    {
+        var endY = 0f;
+        if (index + 1 < listItemPositions.Count)
+        {
+            endY = listItemPositions[index + 1];
+        }
+        else
+        {
+            endY = contentHeight;
+        }
+        return endY;
+    }
     
     private void RefreshVisibleListItems()
     {
@@ -213,16 +227,10 @@ public class PooledList : MonoBehaviour
             while (startIndexToTry >= 0)
             {
                 var startY = listItemPositions[startIndexToTry];
-                var endY = 0f;
-                if (startIndexToTry + 1 < listItemPositions.Count)
-                {
-                    endY = listItemPositions[startIndexToTry + 1];
-                }
-                else
-                {
-                    endY = contentHeight;
-                }
-                if (startY > windowMin || (startY < windowMin && endY > windowMax))
+                var endY = FindMenuItemEndPosition(startIndexToTry);
+
+                if (endY > windowMin  && startY < windowMax)
+                //if (startY > windowMin || (startY < windowMin && endY > windowMax))
                 {
                     var menuItem = CreateMenuItem(startIndexToTry);
                     if (menuItem != null)
@@ -239,13 +247,43 @@ public class PooledList : MonoBehaviour
                 startIndexToTry--;
             }
             
+            // remove any menuitems from beginning
+            startIndexToTry = topMenuItemIndex;
+            var maxIndexToTry = startIndexToTry + visibleMenuItems.Count;
+            for (var i = startIndexToTry; i < maxIndexToTry; i++)
+            {
+                var startY = listItemPositions[i];
+                var endY = FindMenuItemEndPosition(i);
+                if (endY < windowMin || startY > windowMax)
+                {
+                    var itemToRemove = visibleMenuItems[0];
+                    itemToRemove.DiscardObject();
+                    visibleMenuItems.RemoveAt(0);
+
+                    if (visibleMenuItems.Count > 0)
+                    {
+                        topMenuItemIndex++;
+                    }
+                    else
+                    {
+                        topMenuItemIndex = -1;
+                    }
+                }
+                else
+                {
+                    break;
+                }                
+            }
+            
             // add any menuItems to end
             var endIndexToTry = topMenuItemIndex + visibleMenuItems.Count;
 
             while (endIndexToTry < maxNumItems)
             {
                 var startY = listItemPositions[endIndexToTry];
-                if (startY < windowMax)
+                var endY = FindMenuItemEndPosition(endIndexToTry);
+
+                if (startY < windowMax && endY > windowMin)
                 {
                     var menuItem = CreateMenuItem(endIndexToTry);
                     if (menuItem != null)
@@ -258,6 +296,30 @@ public class PooledList : MonoBehaviour
                     break;
                 }
                 endIndexToTry++;
+            }
+            
+            // remove any menuitems from end
+            endIndexToTry = topMenuItemIndex + visibleMenuItems.Count - 1;
+            for (var i = endIndexToTry; i >= topMenuItemIndex; i--)
+            {
+                var startY = listItemPositions[i];
+                var endY = FindMenuItemEndPosition(i);
+                if (endY < windowMin || startY > windowMax)
+                {
+                    var itemToRemove = visibleMenuItems[visibleMenuItems.Count - 1];
+                    itemToRemove.DiscardObject();
+                    visibleMenuItems.RemoveAt(visibleMenuItems.Count - 1);
+
+                    if (visibleMenuItems.Count <= 0)
+                    {
+                        topMenuItemIndex = -1;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                
             }
 
         }
