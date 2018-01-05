@@ -13,4 +13,5 @@ public interface JBConsoleExternalUI
     void AddSearchTermChangedListener(ExternalUISearchTermChanged listener);
     void RemoveSearchTermChangedListener(ExternalUISearchTermChanged listener);    
     void StateChanged(JBConsoleState state);
+    void RefreshLog(ConsoleLevel consoleLevel, string searchTerm, string[] visibleChannels);    
 }

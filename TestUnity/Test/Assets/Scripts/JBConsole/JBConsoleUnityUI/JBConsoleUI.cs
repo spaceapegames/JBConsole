@@ -74,6 +74,14 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         StateChanged(jbConsoleState);
     }
 
+    public void RefreshLog(ConsoleLevel consoleLevel, string searchTerm, string[] visibleChannels)
+    {
+        if (log != null)
+        {
+            log.RefreshLog(consoleLevel, searchTerm, visibleChannels);
+        }
+    }
+    
     public void AddToolbarButtonListener(ExternalUIToolbarButtonPressed listener)
     {
         OnToolbarButton += listener;

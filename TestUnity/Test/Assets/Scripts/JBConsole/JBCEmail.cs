@@ -89,7 +89,7 @@ public class JBCEmail : MonoBehaviour
 
     private string DefaultFormatter(ConsoleLog log)
     {
-        return log.Time.ToString("hh:mm:ss.fff") + " - " + log.channel + " " + log.level + " " + log.message + "\n";
+        return log.Time.ToString("hh:mm:ss.fff") + " - " + log.channel + " " + log.level + " " + log.GetMessage() + "\n";
     }
 
     public static JBCEmail RegisterToConsole(string to = null, string subject = null)

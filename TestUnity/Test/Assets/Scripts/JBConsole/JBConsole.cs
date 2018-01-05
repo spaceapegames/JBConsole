@@ -297,6 +297,7 @@ public class JBConsole : MonoBehaviour
         }
         UpdateChannelsSubMenu();
         clearCache();
+	    LogRefreshNeeded();
 	    UpdateExternalUIState();
     }
 
@@ -313,6 +314,7 @@ public class JBConsole : MonoBehaviour
         viewingLevel = (ConsoleLevel)Enum.GetValues(typeof(ConsoleLevel)).GetValue(index);
         UpdateLevelsSubMenu();
         clearCache();
+	    LogRefreshNeeded();
 	    UpdateExternalUIState();
     }
 
@@ -647,7 +649,7 @@ public class JBConsole : MonoBehaviour
 	{
 		return (log.level >= viewingLevel 
 			&& (viewingChannels == null || Array.IndexOf(viewingChannels, log.channel) >= 0)
-	        && (searchTerm == "" || log.message.ToLower().Contains(searchTerm.ToLower())));
+	        && (searchTerm == "" || log.GetMessageLowercase().Contains(searchTerm.ToLower())));
 	}
 	
 	void CacheBottomOfLogs(float width, float height)
@@ -784,7 +786,13 @@ public class JBConsole : MonoBehaviour
 	private void ExternalUISearchTermChanged(string searchTerm)
 	{
 		this.searchTerm = searchTerm;
-	}	
+		LogRefreshNeeded();
+	}
+
+	private void LogRefreshNeeded()
+	{
+		ExternalUIAction((ui) => ui.RefreshLog(viewingLevel, searchTerm, viewingChannels));
+	}
 	
 	private void UpdateExternalUIState()
 	{

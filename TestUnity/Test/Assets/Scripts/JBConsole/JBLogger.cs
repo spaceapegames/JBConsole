@@ -235,7 +235,7 @@ public class JBLogger
     public ConsoleLog AddCh(ConsoleLevel level, string channel, object[] objects)
     {
         var log = new ConsoleLog();
-        log.message = GetStringOf(objects, emptyRefList);
+        log.SetMessage(GetStringOf(objects, emptyRefList));
         log.level = level;
         log.channel = channel;
         log.Time = DateTime.UtcNow;
@@ -251,7 +251,7 @@ public class JBLogger
     public ConsoleLog AddCh(ConsoleLevel level, string channel, string message)
     {
         var log = new ConsoleLog();
-        log.message = message;
+        log.SetMessage(message);
         log.level = level;
         log.channel = channel;
         log.Time = DateTime.UtcNow;
@@ -265,7 +265,7 @@ public class JBLogger
         lock (this)
         {
             int count = logs.Count;
-            if (count > 0 && logs[count - 1].message == log.message)
+            if (count > 0 && logs[count - 1].GetMessage() == log.GetMessage())
             {
                 logs[count - 1].repeats++;
                 Changed();
@@ -325,7 +325,8 @@ public class ConsoleLog: IConsoleLog
     public DateTime Time;
     public ConsoleLevel level;
     public string channel;
-    public string message;
+    private string message;
+    private string messageLowercase;
     public StackTrace stackTrace;
     public int repeats;
     public List<WeakReference> references;
@@ -356,9 +357,20 @@ public class ConsoleLog: IConsoleLog
         return channel;
     }
 
+    public void SetMessage(string message)
+    {
+        this.message = message;
+        this.messageLowercase = message.ToLower();
+    }
+    
     public string GetMessage()
     {
         return message;
+    }
+
+    public string GetMessageLowercase()
+    {
+        return messageLowercase;
     }
 
     public StackTrace GetStackTrace()

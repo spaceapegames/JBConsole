@@ -40,7 +40,7 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
         {
             textGenerator = new TextGenerator();
         }
-        var heightForComponent = textGenerator.GetPreferredHeight(consoleLog.message, textGenerationSettings);
+        var heightForComponent = textGenerator.GetPreferredHeight(consoleLog.GetMessage(), textGenerationSettings);
 
         if (layoutGroup != null)
         {
@@ -54,7 +54,7 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
         this.consoleLog = consoleLog;
         if (textField != null)
         {
-            textField.text = consoleLog.message;
+            textField.text = consoleLog.GetMessage();
         }
         
         rectTransform.sizeDelta = new Vector2(0, GetPreferredHeight(consoleLog, widthOfAvailableSpace));

@@ -30,7 +30,10 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     private Vector2 logUISize = Vector2.zero;
     private List<JBConsoleUILogItem> itemPool = new List<JBConsoleUILogItem>();
     private GameObject itemPoolParent = null;
-    
+    private ConsoleLevel consoleLevel = ConsoleLevel.Debug;
+    private string searchTermLowercase = null;
+    private HashSet<string> visibleChannels = new HashSet<string>();
+
     private void Awake()
     {
         var logger = JBLogger.instance;
@@ -85,6 +88,90 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         }
         logItemPrefab.gameObject.SetActive(false);
     }
+
+    private bool ShouldShow(ConsoleLog log)
+    {
+        return log.level >= consoleLevel 
+            && (visibleChannels == null || visibleChannels.Count == 0 || visibleChannels.Contains(log.channel)) 
+            && (string.IsNullOrEmpty(searchTermLowercase) || log.GetMessageLowercase().Contains(searchTermLowercase.ToLower()));
+    }
+    
+    private bool VisibleChannelsChanged(string[] newVisibleChannels)
+    {
+        bool newVisibleChannelsEmpty = newVisibleChannels == null || newVisibleChannels.Length == 0;
+        bool currentVIsibleChannelsEmpty = visibleChannels == null || visibleChannels.Count == 0;
+        
+        // if both empty then same
+        if (newVisibleChannelsEmpty && currentVIsibleChannelsEmpty)
+        {
+            return false;
+        }
+        // if one empty then changed
+        else if (newVisibleChannelsEmpty ^ currentVIsibleChannelsEmpty)
+        {
+            return true;
+        }
+        // both not empty
+        else
+        {
+            if (visibleChannels.Count != newVisibleChannels.Length)
+            {
+                return true;
+            }
+            else
+            {
+                for (var i = 0; i < newVisibleChannels.Length; i++)
+                {
+                    if (!visibleChannels.Contains(newVisibleChannels[i]))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+    
+    public void RefreshLog(ConsoleLevel consoleLevel, string searchTerm, string[] visibleChannels)
+    {
+        bool changed = false;
+        var searchTermLower = searchTerm.ToLower();
+        if (searchTermLowercase != searchTermLower)
+        {
+            changed = true;
+        }
+        if (this.consoleLevel != consoleLevel)
+        {
+            changed = true;
+        }
+        if (VisibleChannelsChanged(visibleChannels))
+        {
+            changed = true;
+        }
+
+        if (!changed)
+        {
+            return;
+        }
+        
+        if (visibleChannels == null || visibleChannels.Length == 0)
+        {
+            this.visibleChannels.Clear();
+        }
+        else
+        {
+            this.visibleChannels.Clear();
+            for (var i = 0; i < visibleChannels.Length; i++)
+            {
+                this.visibleChannels.Add(visibleChannels[i]);
+            }
+        }
+
+        searchTermLowercase = searchTermLower;
+        this.consoleLevel = consoleLevel;
+        
+        PopulateList();
+    }
     
     private void PopulateList()
     {
@@ -94,16 +181,17 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         {
             for (var i = 0; i < loggerLogs.Count; i++)
             {
-                logs.Add(new ConsoleLogDetails()
+                if (ShouldShow(loggerLogs[i]))
                 {
-                    log = loggerLogs[i],
-                    height = null
-                });
+                    logs.Add(new ConsoleLogDetails()
+                    {
+                        log = loggerLogs[i],
+                        height = null
+                    });                    
+                }
             }            
         }
         
-        // calculate the sizes of the logs
-
         RefreshLogUI();        
     }
     
@@ -152,13 +240,16 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
     private void LogAdded(ConsoleLog consoleLog)
     {
-        logs.Add(new ConsoleLogDetails()
+        if (ShouldShow(consoleLog))
         {
-            log = consoleLog,
-            height = null
-        });
+            logs.Add(new ConsoleLogDetails()
+            {
+                log = consoleLog,
+                height = null
+            });
+        }
         
-        Debug.Log("LogAdded "+consoleLog.message);
+        Debug.Log("LogAdded "+consoleLog.GetMessage());
 
         if (logUI != null)
         {
