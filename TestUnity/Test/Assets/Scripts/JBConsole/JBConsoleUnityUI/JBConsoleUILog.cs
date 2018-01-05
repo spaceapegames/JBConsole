@@ -26,9 +26,10 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     [SerializeField] private PooledList logUI = null;
     [SerializeField] private JBConsoleUILogItem logItemPrefab = null;
 
-//    private List<ConsoleLog> logs;
     private List<ConsoleLogDetails> logs;
     private Vector2 logUISize = Vector2.zero;
+    private List<JBConsoleUILogItem> itemPool = new List<JBConsoleUILogItem>();
+    private GameObject itemPoolParent = null;
     
     private void Awake()
     {
@@ -49,6 +50,8 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         {
             logItemPrefab.gameObject.SetActive(false);
         }
+
+        GenerateItemPool();
         
         PopulateList();
     }
@@ -61,6 +64,28 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         logger.OnLogsCleared -= LogsCleared;
     }
 
+    private void GenerateItemForPool()
+    {
+        var instantiatedItem = Instantiate(logItemPrefab);
+        instantiatedItem.OnItemRecycled += LogItemRecycled;
+        instantiatedItem.gameObject.SetActive(false);
+        instantiatedItem.transform.SetParent(itemPoolParent.transform, false);
+        itemPool.Add(instantiatedItem);        
+    }
+    
+    private void GenerateItemPool()
+    {
+        itemPoolParent = new GameObject("ItemPool");
+        itemPoolParent.AddComponent<RectTransform>();
+        itemPoolParent.transform.SetParent(transform, false);
+        logItemPrefab.gameObject.SetActive(true);
+        for (var i = 0; i < 5; i++)
+        {
+            GenerateItemForPool();
+        }
+        logItemPrefab.gameObject.SetActive(false);
+    }
+    
     private void PopulateList()
     {
         logs.Clear();
@@ -138,7 +163,6 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         if (logUI != null)
         {
             logUI.ItemAddedToEnd();
-//            logUI.Refresh();
         }
     }
 
@@ -149,14 +173,12 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
     public iPooledListItem GetListItem(int index)
     {
-        logItemPrefab.gameObject.SetActive(true);
-        
-        var instantiatedItem = Instantiate(logItemPrefab);
-        instantiatedItem.OnItemRecycled += LogItemRecycled;
-        instantiatedItem.Setup(logs[index].log, logUISize.x);
-        
-        logItemPrefab.gameObject.SetActive(false);
-        return instantiatedItem;
+        var item = GetPooledItem();
+        if (item != null)
+        {
+            item.Setup(logs[index].log, logUISize.x);            
+        }
+        return item;
     }
 
     public float GetListItemHeight(int index)
@@ -168,9 +190,33 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         return logs[index].height.Value;
     }
 
+    private JBConsoleUILogItem GetPooledItem()
+    {
+        JBConsoleUILogItem pooledItem = null;
+        
+        if (itemPool.Count <= 0)
+        {
+            logItemPrefab.gameObject.SetActive(true);
+            GenerateItemForPool();
+            logItemPrefab.gameObject.SetActive(false);
+        }
+
+        if (itemPool.Count > 0)
+        {
+            var lastIndex = itemPool.Count - 1;
+            pooledItem = itemPool[lastIndex];
+            itemPool.RemoveAt(itemPool.Count - 1);
+            pooledItem.gameObject.SetActive(true);
+        }
+
+        return pooledItem;
+    }
+    
     private void LogItemRecycled(JBConsoleUILogItem logItem)
     {
-        Destroy(logItem.gameObject);
+        logItem.gameObject.SetActive(false);
+        logItem.transform.SetParent(itemPoolParent.transform, false);
+        itemPool.Add(logItem);
     }
 
 }

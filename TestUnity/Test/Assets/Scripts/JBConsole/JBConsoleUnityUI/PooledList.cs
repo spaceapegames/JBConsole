@@ -393,8 +393,6 @@ public class PooledList : MonoBehaviour
         {
             listSizeChanged(rectTransform.rect.size);            
         }
-
-        //Debug.Log("UpdateVisibleWindow "+" windowMin="+windowMin+" windowMax="+windowMax + " anchoredPosition = "+scrollingContent.anchoredPosition+ " size = "+scrollingContent.sizeDelta);
     }
     
     private void ScrollRectChanged(Vector2 scroll)
