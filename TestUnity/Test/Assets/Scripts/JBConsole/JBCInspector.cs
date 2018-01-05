@@ -47,6 +47,7 @@ public class JBCInspector : MonoBehaviour {
             {
                 focusedLog = null;
                 console.Defocus();
+                console.SetSelectedLogOnExternalUIs(null);
             }
         }
 

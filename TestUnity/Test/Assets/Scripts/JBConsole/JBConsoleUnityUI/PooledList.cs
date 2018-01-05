@@ -68,8 +68,8 @@ public class PooledList : MonoBehaviour
             scrollRect.content = scrollingContent;
             
             // TMP ADD IMAGE
-            var bg = scrollingContentGO.AddComponent<Image>();
-            bg.color = Color.gray;
+            //var bg = scrollingContentGO.AddComponent<Image>();
+            //bg.color = Color.gray;
         }
 
     }

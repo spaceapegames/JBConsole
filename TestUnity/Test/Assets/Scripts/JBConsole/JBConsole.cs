@@ -595,9 +595,10 @@ public class JBConsole : MonoBehaviour
 		if (clickedLog != null && OnLogSelectedHandler != null)
 		{
 			OnLogSelectedHandler(clickedLog);
+			SetSelectedLogOnExternalUIs(clickedLog);
 		}
     }
-
+	
     public void Focus(JBCDrawBodyHandler drawBodyHandler)
     {
         DrawGUIBodyHandler = drawBodyHandler;
@@ -628,9 +629,10 @@ public class JBConsole : MonoBehaviour
 		for (int i = cachedLogs.Count - 1; i >= 0; i--)
 		{
 			log = cachedLogs[i];
-			if(log.repeats > 0)
+			var repeats = log.GetRepeats();
+			if(repeats > 0)
 			{
-                GUILayout.Label((log.repeats + 1) + "x " + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
+                GUILayout.Label((repeats + 1) + "x " + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
 			}
 			else
 			{
@@ -730,6 +732,7 @@ public class JBConsole : MonoBehaviour
 			externalUI.AddToolbarButtonListener(ExternalUIToolbarButtonPressed);	
 			externalUI.AddMenuButtonListener(ExternalUIMenuButtonPressed);
 			externalUI.AddSearchTermChangedListener(ExternalUISearchTermChanged);
+			externalUI.AddConsoleLogSelectedListener(ExternalUIConsoleLogSelected);
 			externalUI.SetActive(_visible, State);
 		}		
 	}
@@ -746,6 +749,7 @@ public class JBConsole : MonoBehaviour
 			externalUI.RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed);		
 			externalUI.RemoveMenuButtonListener(ExternalUIMenuButtonPressed);
 			externalUI.RemoveSearchTermChangedListener(ExternalUISearchTermChanged);
+			externalUI.AddConsoleLogSelectedListener(ExternalUIConsoleLogSelected);
 			externalUIs.Remove(externalUI);
 		}		
 	}
@@ -783,12 +787,29 @@ public class JBConsole : MonoBehaviour
 		OnMenuSelection(selectionIndex);	
 	}
 
+	private void ExternalUIConsoleLogSelected(ConsoleLog consoleLog)
+	{
+		if (consoleLog == null)
+		{
+			Defocus();
+		}
+		else
+		{
+			OnLogSelectedHandler(consoleLog);
+		}
+	}
+	
 	private void ExternalUISearchTermChanged(string searchTerm)
 	{
 		this.searchTerm = searchTerm;
 		LogRefreshNeeded();
 	}
 
+	public void SetSelectedLogOnExternalUIs(ConsoleLog consoleLog)
+	{
+		ExternalUIAction((ui) => ui.LogSelected(consoleLog));
+	}
+	
 	private void LogRefreshNeeded()
 	{
 		ExternalUIAction((ui) => ui.RefreshLog(viewingLevel, searchTerm, viewingChannels));

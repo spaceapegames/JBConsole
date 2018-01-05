@@ -8,6 +8,7 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
 {
     [SerializeField] private Text textField = null;
     [SerializeField] private VerticalLayoutGroup layoutGroup = null;
+    [SerializeField] private Button clickButton = null;
 
     private RectTransform rectTransform = null;
     private ConsoleLog consoleLog = null;
@@ -16,12 +17,27 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
     private float lastGenerationWidth = -1;
 
     public Action<JBConsoleUILogItem> OnItemRecycled = delegate { };
-    
+    public Action<JBConsoleUILogItem> OnItemClicked = delegate { };
+        
     private void Awake()
     {
         rectTransform = gameObject.GetComponent<RectTransform>();
+        if (clickButton != null)
+        {
+            clickButton.onClick.AddListener(LogItemClicked);
+        }
     }
 
+    public ConsoleLog Log
+    {
+        get { return consoleLog; }
+    }
+    
+    private void LogItemClicked()
+    {
+        OnItemClicked(this);
+    }
+    
     public float GetPreferredHeight(ConsoleLog consoleLog, float widthOfAvailableSpace)
     {
         var widthAvailableToText = widthOfAvailableSpace;
@@ -40,7 +56,7 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
         {
             textGenerator = new TextGenerator();
         }
-        var heightForComponent = textGenerator.GetPreferredHeight(consoleLog.GetMessage(), textGenerationSettings);
+        var heightForComponent = textGenerator.GetPreferredHeight(consoleLog.GetMessageToShowInLog(false), textGenerationSettings);
 
         if (layoutGroup != null)
         {
@@ -49,12 +65,41 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
         return heightForComponent;
     }
 
-    public void Setup(ConsoleLog consoleLog, float widthOfAvailableSpace)
+    private void LogRepeatsChanged(ConsoleLog log)
     {
-        this.consoleLog = consoleLog;
         if (textField != null)
         {
-            textField.text = consoleLog.GetMessage();
+            textField.text = consoleLog.GetMessageToShowInLog();
+        }
+    }
+
+    private Color GetColorForLevel(ConsoleLevel consoleLevel)
+    {
+        switch (consoleLevel)
+        {
+            default:
+            case ConsoleLevel.Debug: return JBCStyle.DEBUG_COLOR;
+            case ConsoleLevel.Info: return JBCStyle.INFO_COLOR;
+            case ConsoleLevel.Warn: return JBCStyle.WARN_COLOR;
+            case ConsoleLevel.Error: return JBCStyle.ERROR_COLOR;
+            case ConsoleLevel.Fatal: return JBCStyle.FATAL_COLOR;
+        }
+    }
+    
+    public void Setup(ConsoleLog consoleLog, float widthOfAvailableSpace)
+    {
+        if (consoleLog != null)
+        {
+            consoleLog.OnRepeatsChanged -= LogRepeatsChanged;
+        }
+        
+        this.consoleLog = consoleLog;
+        consoleLog.OnRepeatsChanged += LogRepeatsChanged;
+
+        if (textField != null)
+        {
+            textField.text = consoleLog.GetMessageToShowInLog();
+            textField.color = GetColorForLevel(this.consoleLog.level);
         }
         
         rectTransform.sizeDelta = new Vector2(0, GetPreferredHeight(consoleLog, widthOfAvailableSpace));
@@ -67,6 +112,8 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
 
     public void DiscardObject()
     {
+        consoleLog.OnRepeatsChanged -= LogRepeatsChanged;
+
         OnItemRecycled(this);
     }
 }

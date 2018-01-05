@@ -34,6 +34,8 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     private string searchTermLowercase = null;
     private HashSet<string> visibleChannels = new HashSet<string>();
 
+    public Action<ConsoleLog> OnConsoleLogSelected = delegate {  };
+    
     private void Awake()
     {
         var logger = JBLogger.instance;
@@ -71,6 +73,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     {
         var instantiatedItem = Instantiate(logItemPrefab);
         instantiatedItem.OnItemRecycled += LogItemRecycled;
+        instantiatedItem.OnItemClicked += LogItemClicked;
         instantiatedItem.gameObject.SetActive(false);
         instantiatedItem.transform.SetParent(itemPoolParent.transform, false);
         itemPool.Add(instantiatedItem);        
@@ -237,7 +240,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
         PopulateList();
     }
-
+    
     private void LogAdded(ConsoleLog consoleLog)
     {
         if (ShouldShow(consoleLog))
@@ -249,8 +252,8 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
             });
         }
         
-        Debug.Log("LogAdded "+consoleLog.GetMessage());
-
+        //Debug.Log("LogAdded "+consoleLog.GetMessage());
+        
         if (logUI != null)
         {
             logUI.ItemAddedToEnd();
@@ -308,6 +311,11 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         logItem.gameObject.SetActive(false);
         logItem.transform.SetParent(itemPoolParent.transform, false);
         itemPool.Add(logItem);
+    }
+
+    private void LogItemClicked(JBConsoleUILogItem logItem)
+    {
+        OnConsoleLogSelected(logItem.Log);
     }
 
 }

@@ -58,6 +58,8 @@ public class Main : MonoBehaviour
 			"Some more text now here's a load of stuff",
 			"blee blooo, wiggle giggle blonk blonk nibbles"
 		};
+
+		/*
 		for (var i = 0; i < 150; i++)
 		{
 			var textIndex = Random.Range(0, texts.Length);
@@ -69,6 +71,7 @@ public class Main : MonoBehaviour
 			}
 			Logger.DebugCh("BLAH", text);
 		}
+		*/
 		
 		//StartCoroutine(SlowLogger());
 	}
@@ -79,7 +82,7 @@ public class Main : MonoBehaviour
 		while (true)
 		{
 			Logger.DebugCh("SLOW", "LOG "+(count++));
-			yield return new WaitForSeconds(2.0f);
+			yield return new WaitForSeconds(1.0f);
 		}
 	}
 	

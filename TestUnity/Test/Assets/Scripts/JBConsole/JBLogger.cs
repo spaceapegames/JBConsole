@@ -267,7 +267,7 @@ public class JBLogger
             int count = logs.Count;
             if (count > 0 && logs[count - 1].GetMessage() == log.GetMessage())
             {
-                logs[count - 1].repeats++;
+                logs[count - 1].IncreaseRepeats();
                 Changed();
                 return;
             }
@@ -326,14 +326,33 @@ public class ConsoleLog: IConsoleLog
     public ConsoleLevel level;
     public string channel;
     private string message;
-    private string messageLowercase;
     public StackTrace stackTrace;
-    public int repeats;
     public List<WeakReference> references;
 
+    public Action<ConsoleLog> OnRepeatsChanged = delegate { };
+
+    private string messageLowercase;
+    private int repeats;
+
+    public int GetRepeats()
+    {
+        return repeats;
+    }
+
+    public void IncreaseRepeats()
+    {
+        repeats++;
+        OnRepeatsChanged(this);
+    }
+    
     public string GetUnityLimitedMessage()
     {
-        var message = this.message;
+        var message = ApplyUnityLimitations(this.message);
+        return message;
+    }
+
+    public string ApplyUnityLimitations(string message)
+    {
         const int MAX_LENGTH = System.UInt16.MaxValue / 4 - 1; //From unity source
         if (message.Length > MAX_LENGTH)
         {
@@ -341,7 +360,7 @@ public class ConsoleLog: IConsoleLog
         }
         return message;
     }
-
+    
     public DateTime GetTime()
     {
         return Time;
@@ -359,15 +378,27 @@ public class ConsoleLog: IConsoleLog
 
     public void SetMessage(string message)
     {
-        this.message = message;
-        this.messageLowercase = message.ToLower();
+        this.message = ApplyUnityLimitations(message);
+        messageLowercase = message.ToLower();
     }
     
     public string GetMessage()
     {
         return message;
     }
-
+    
+    public string GetMessageToShowInLog(bool includeRepeats = true)
+    {
+        if (includeRepeats && repeats > 0)
+        {
+            return (repeats + 1) + "x " + GetMessage();
+        }
+        else
+        {
+            return Time.ToLongTimeString() + "-" + GetMessage();
+        }
+    }
+    
     public string GetMessageLowercase()
     {
         return messageLowercase;

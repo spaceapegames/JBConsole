@@ -12,10 +12,12 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     [SerializeField] private JBConsoleUIMenuController menus = null;
     [SerializeField] private GameObject visibleRoot = null;
     [SerializeField] private JBConsoleUISearch search;
+    [SerializeField] private JBConsoleUILogInspector logInspector = null;
     
     private ExternalUIToolbarButtonPressed OnToolbarButton = delegate { };
     private ExternalUIMenuButtonPressed OnMenuButton = delegate { };
     private ExternalUISearchTermChanged OnSearchTermChanged = delegate { };
+    private ExternalUIConsoleLogSelected OnConsoleLogSelected = delegate { };
     
     private void Awake()
     {
@@ -30,6 +32,14 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         if (search != null)
         {
             search.searchChanged += SearchChanged;
+        }
+        if (logInspector != null)
+        {
+            logInspector.OnLogInspectorClosed += LogInspectorClosed;
+        }
+        if (log != null)
+        {
+            log.OnConsoleLogSelected += ConsoleLogSelected;
         }
     }
 
@@ -46,6 +56,14 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         if (search != null)
         {
             search.searchChanged -= SearchChanged;
+        }
+        if (logInspector != null)
+        {
+            logInspector.OnLogInspectorClosed -= LogInspectorClosed;
+        }
+        if (log != null)
+        {
+            log.OnConsoleLogSelected -= ConsoleLogSelected;
         }
     }
 
@@ -112,6 +130,16 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
         OnSearchTermChanged -= listener;
     }
     
+    public void AddConsoleLogSelectedListener(ExternalUIConsoleLogSelected listener)
+    {
+        OnConsoleLogSelected += listener;
+    }
+
+    public void RemoveConsoleLogSelectedListener(ExternalUIConsoleLogSelected listener)
+    {
+        OnConsoleLogSelected -= listener;
+    }
+    
     private void ToolbarButtonSelected(ConsoleMenu? consoleMenu)
     {
         OnToolbarButton(consoleMenu);            
@@ -121,10 +149,29 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     {
         OnMenuButton(menuItem);
     }
-
+    
     private void SearchChanged(string searchTerm)
     {
         Debug.Log("SearchChanged - " + searchTerm);
         OnSearchTermChanged(searchTerm);
+    }
+
+    public void LogSelected(ConsoleLog consoleLog)
+    {
+        if (logInspector != null)
+        {
+            logInspector.ShowForLog(consoleLog);       
+        }
+    }
+
+    private void LogInspectorClosed()
+    {
+        OnConsoleLogSelected(null);
+    }
+
+    private void ConsoleLogSelected(ConsoleLog consoleLog)
+    {
+        LogSelected(consoleLog);
+        OnConsoleLogSelected(consoleLog);
     }
 }
