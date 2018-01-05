@@ -9,10 +9,11 @@ using UnityEngine.UI;
 
 public class JBConsoleUILogInspector : MonoBehaviour
 {
-    [SerializeField]
-    private Button backButton = null;
-    [SerializeField]
-    private Button copyButton = null;
+    [SerializeField] private Button backButton = null;
+    [SerializeField] private Button copyButton = null;
+    [SerializeField] private Text messageTextField = null;
+    [SerializeField] private Text callstackTextField = null;
+    [SerializeField] private RectTransform scrollingContent = null;
 
     private ConsoleLog consoleLog = null;
     private string stack = null;
@@ -43,6 +44,11 @@ public class JBConsoleUILogInspector : MonoBehaviour
         }
         else
         {
+            if (scrollingContent != null)
+            {
+                scrollingContent.anchoredPosition = new Vector2(0, 0);
+            }
+            
             stack = "";
             if (this.consoleLog.stackTrace != null)
             {
@@ -57,6 +63,17 @@ public class JBConsoleUILogInspector : MonoBehaviour
             else
             {
                 stack = "Stack trace disabled";
+            }
+            
+            if (messageTextField != null)
+            {
+                messageTextField.text = consoleLog.GetMessage();
+                messageTextField.color = consoleLog.GetColorForLevel();
+            }
+
+            if (callstackTextField != null)
+            {
+                callstackTextField.text = stack;
             }
         
             gameObject.SetActive(true);

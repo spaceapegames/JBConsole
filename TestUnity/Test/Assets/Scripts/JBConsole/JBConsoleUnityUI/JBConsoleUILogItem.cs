@@ -72,19 +72,6 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
             textField.text = consoleLog.GetMessageToShowInLog();
         }
     }
-
-    private Color GetColorForLevel(ConsoleLevel consoleLevel)
-    {
-        switch (consoleLevel)
-        {
-            default:
-            case ConsoleLevel.Debug: return JBCStyle.DEBUG_COLOR;
-            case ConsoleLevel.Info: return JBCStyle.INFO_COLOR;
-            case ConsoleLevel.Warn: return JBCStyle.WARN_COLOR;
-            case ConsoleLevel.Error: return JBCStyle.ERROR_COLOR;
-            case ConsoleLevel.Fatal: return JBCStyle.FATAL_COLOR;
-        }
-    }
     
     public void Setup(ConsoleLog consoleLog, float widthOfAvailableSpace)
     {
@@ -98,8 +85,8 @@ public class JBConsoleUILogItem : MonoBehaviour, iPooledListItem
 
         if (textField != null)
         {
-            textField.text = consoleLog.GetMessageToShowInLog();
-            textField.color = GetColorForLevel(this.consoleLog.level);
+            textField.text = this.consoleLog.GetMessageToShowInLog();
+            textField.color = this.consoleLog.GetColorForLevel();
         }
         
         rectTransform.sizeDelta = new Vector2(0, GetPreferredHeight(consoleLog, widthOfAvailableSpace));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Collections;
+using UnityEngine;
 
 [System.Serializable]
 public class JBLogger
@@ -385,6 +386,19 @@ public class ConsoleLog: IConsoleLog
     public string GetMessage()
     {
         return message;
+    }
+    
+    public Color GetColorForLevel()
+    {
+        switch (level)
+        {
+            default:
+            case ConsoleLevel.Debug: return JBCStyle.DEBUG_COLOR;
+            case ConsoleLevel.Info: return JBCStyle.INFO_COLOR;
+            case ConsoleLevel.Warn: return JBCStyle.WARN_COLOR;
+            case ConsoleLevel.Error: return JBCStyle.ERROR_COLOR;
+            case ConsoleLevel.Fatal: return JBCStyle.FATAL_COLOR;
+        }
     }
     
     public string GetMessageToShowInLog(bool includeRepeats = true)
