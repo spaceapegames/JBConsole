@@ -36,6 +36,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     private string searchTermLowercase = null;
     private HashSet<string> visibleChannels = new HashSet<string>();
     private bool autoScrolling = true;
+	private bool isActive = false;
 
     public Action<ConsoleLog> OnConsoleLogSelected = delegate {  };
     
@@ -70,7 +71,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         
         GenerateItemPool();
         
-        PopulateList();
+        //PopulateList();
     }
     
     private void OnDestroy()
@@ -255,9 +256,21 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         }
     }
 
+	public void SetActive(bool shouldEnable)
+	{
+		if (shouldEnable != isActive) 
+		{
+			isActive = shouldEnable;
+			if (isActive) 
+			{
+				PopulateList();
+			}
+		}
+	}
+
     private void AutoScrollCancelled()
     {
-        Debug.Log("AutoScrollCancelled");
+        //Debug.Log("AutoScrollCancelled");
         AutoScrolling = false;
     }
 
@@ -281,9 +294,14 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     
     private void LogRemoved(int logIndex)
     {
+		if (!isActive) 
+		{
+			return;
+		}
+
         logs.RemoveAt(logIndex);
 
-        Debug.Log("LogRemoved " + logIndex);
+        //Debug.Log("LogRemoved " + logIndex);
 
         if (logUI != null)
         {
@@ -294,13 +312,23 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
     private void LogsCleared()
     {
-        Debug.Log("LogsCleared");
+		if (!isActive) 
+		{
+			return;
+		}
+
+		//Debug.Log("LogsCleared");
 
         PopulateList();
     }
     
     private void LogAdded(ConsoleLog consoleLog)
     {
+		if (!isActive) 
+		{
+			return;
+		}
+
         if (ShouldShow(consoleLog))
         {
             logs.Add(new ConsoleLogDetails()

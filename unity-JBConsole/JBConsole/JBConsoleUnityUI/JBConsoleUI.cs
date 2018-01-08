@@ -90,6 +90,10 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
             visibleRoot.SetActive(shouldEnable);
         }
         StateChanged(jbConsoleState);
+		if (log != null) 
+		{
+			log.SetActive (shouldEnable);
+		}
     }
 
     public void RefreshLog(ConsoleLevel consoleLevel, string searchTerm, string[] visibleChannels)
@@ -152,7 +156,7 @@ public class JBConsoleUI : MonoBehaviour, JBConsoleExternalUI
     
     private void SearchChanged(string searchTerm)
     {
-        Debug.Log("SearchChanged - " + searchTerm);
+        //Debug.Log("SearchChanged - " + searchTerm);
         OnSearchTermChanged(searchTerm);
     }
 
