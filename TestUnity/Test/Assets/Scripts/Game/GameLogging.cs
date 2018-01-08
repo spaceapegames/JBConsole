@@ -78,17 +78,6 @@ public class GameLogging : MonoBehaviour
         #endif
 
         JBLogger.instance.RecordStackTrace = Application.isEditor || Debug.isDebugBuild;
-
-        if (Application.isEditor)
-        {
-            //Debug.Log("Password hash = " + JBPasswordEntry.Hash(""));
-        }
-        else
-        {
-            #if !DEBUG
-            passwordEntry = JBPasswordEntry.RegisterToConsole("dance!", "HINT");
-            #endif
-        }
         
         JBConsole.instance.OnVisiblityChanged += HandleOnVisiblityChanged;
         JBCVisibleOnPress.RegisterToConsole();

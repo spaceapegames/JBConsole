@@ -4,22 +4,33 @@ using UnityEngine;
 
 public class Main : MonoBehaviour
 {
-	private bool toggle1 = false;
+	private bool autoLog = false;
 	private List<bool> toggles = new List<bool>();
+	private Coroutine autoLogCoroutine = null;
 	
-	private void Start () 
+	private void Start ()
 	{
+		Application.targetFrameRate = 60;
+		
 		JBConsole.AddMenu("Root B1", () =>
 		{
 			Logger.Debug("Root B1");
 		});
 		
-		JBConsole.AddToggle("Root T1", delegate
+		JBConsole.AddToggle("Auto Log", delegate
 		{
-			toggle1 = !toggle1;
+			autoLog = !autoLog;
+			if (autoLog)
+			{
+				autoLogCoroutine = StartCoroutine(SlowLogger());
+			}
+			else if (autoLogCoroutine != null)
+			{
+				StopCoroutine(autoLogCoroutine);
+			}
 		}, delegate
 		{
-			return toggle1;
+			return autoLog;
 		});
 
 		var toggleCount = 0;
@@ -52,17 +63,11 @@ public class Main : MonoBehaviour
 		Logger.WarnCh("WEEE", "HELLO CHANNEL WEEE");
 		//Logger.ErrorCh("MOOO", 0, "HELLO CHANNEL MOOO");
 
-		var texts = new[]
-		{
-			"Lots of stuff wee wee weeeee",
-			"Some more text now here's a load of stuff",
-			"blee blooo, wiggle giggle blonk blonk nibbles"
-		};
-
+		/*
 		for (var i = 0; i < 5; i++)
 		{
 			var textIndex = Random.Range(0, texts.Length);
-			var numRepeats = Random.Range(1, 5);
+			var numRepeats = Random.Range(1, 1);
 			var text = "";
 			for (var j = 0; j < numRepeats; j++)
 			{
@@ -70,17 +75,47 @@ public class Main : MonoBehaviour
 			}
 			Logger.DebugCh("BLAH", text);
 		}
-		
+		*/
 		
 		//StartCoroutine(SlowLogger());
 	}
 
+	string[] texts = new[]
+	{
+		"Lots of stuff wee wee weeeee",
+		"Some more text now here's a load of stuff",
+		"blee blooo, wiggle giggle blonk blonk nibbles",
+		"Eat your foot.",
+		"I hate the green flashing light.",
+		"Save a tree, eat a beaver.",
+		"Ha ha! I don’t get it.",
+		"I do whatever my Rice Crispies tell me to do",
+		"Foaming At The Mouth",
+		"An Arm and a Leg",
+		"Sixty-Four comes asking for bread.",
+		"The memory we used to share is no longer coherent."
+	};
+	
 	IEnumerator SlowLogger()
 	{
 		int count = 0;
 		while (true)
 		{
-			Logger.DebugCh("SLOW", "LOG "+(count++));
+			var type = Random.Range(0, 3);
+			var text = texts[Random.Range(0, texts.Length)];
+			switch (type)
+			{
+				case 0:
+					Logger.DebugCh("TDebug", text);
+					break;
+				case 1:
+					Logger.InfoCh("TInfo", text);
+					break;
+				case 2:
+					Logger.WarnCh("TWarn", text);
+					break;
+						
+			}
 			yield return new WaitForSeconds(1.0f);
 		}
 	}

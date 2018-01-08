@@ -236,7 +236,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     {
         if (logUISize != this.logUISize)
         {
-            if (logUISize.x != this.logUISize.x)
+            //if (logUISize.x != this.logUISize.x)
             {
                 this.logUISize = logUISize;
 
@@ -248,10 +248,10 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
                 RefreshLogUI();                
             }
             // if height has changed then we just need to ensure the correct items are visble
-            else
-            {
-                RefreshLogItems();
-            }
+            //else
+            //{
+           //     RefreshLogItems();
+           // }
         }
     }
 

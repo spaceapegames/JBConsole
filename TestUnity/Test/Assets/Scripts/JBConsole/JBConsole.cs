@@ -306,6 +306,7 @@ public class JBConsole : MonoBehaviour
 		if (currentTopMenuIndex == (int) ConsoleMenu.Channels)
 		{
 			UpdateChannelsSubMenu();
+			UpdateExternalUIState();
 		}
 	}
 

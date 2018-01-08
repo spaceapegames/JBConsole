@@ -69,7 +69,9 @@ public class PooledList : MonoBehaviour
             scrollingContent.offsetMax = new Vector2(0, 0);
             scrollingContentGO.transform.SetParent(scrollRect.transform, false);
             scrollRect.content = scrollingContent;
-            
+
+            scrollingContentGO.AddComponent<JBConsoleUITouchable>();
+
             // TMP ADD IMAGE
             //var bg = scrollingContentGO.AddComponent<Image>();
             //bg.color = Color.gray;
