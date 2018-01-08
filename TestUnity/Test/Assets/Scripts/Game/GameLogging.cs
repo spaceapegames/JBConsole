@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using com.spaceape.jbconsole;
 using Debug = UnityEngine.Debug;
 
 public class GameLogging : MonoBehaviour
@@ -69,7 +70,8 @@ public class GameLogging : MonoBehaviour
         JBConsole.instance.Visible = false;
         ApplyJBPrefs();
 
-        jbConsoleUIGO = Instantiate(Resources.Load("JBConsoleUI")) as GameObject;
+        jbConsoleUIGO = Instantiate(JBConsoleConfig.GetExternalUIPrefab());
+        //jbConsoleUIGO = Instantiate(Resources.Load("JBConsoleUI")) as GameObject;
         var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
         JBConsole.instance.AddExternalUI(jbConsoleExternalUI);
         
