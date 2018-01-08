@@ -28,20 +28,32 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/SpaceApe.Common.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/SpaceApe.Common.dll" workingdir="" />
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/SpaceApe.JBConsole.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/SpaceApe.JBConsole.dll" />
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/SpaceApe.Logger.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/SpaceApe.Logger.dll" workingdir="" />
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/SpaceApe.CommonEditor.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/Editor/SpaceApe.CommonEditor.dll" />
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/shared-unity-common.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/Editor/shared-unity-common.dll" workingdir="" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="UnityEngine">
       <HintPath>..\packages\Unity.UnityEngine.5.4.0\lib\net35\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="SpaceApe.CommonEditor">
-      <HintPath>..\packages\SpaceApe.Common.1.0.5\lib\net35\Editor\SpaceApe.CommonEditor.dll</HintPath>
-    </Reference>
     <Reference Include="SpaceApe.Common">
       <HintPath>..\packages\SpaceApe.Common.1.0.5\lib\net35\SpaceApe.Common.dll</HintPath>
     </Reference>
     <Reference Include="SpaceApe.Logger">
       <HintPath>..\packages\SpaceApe.Logger.1.0.2\lib\net35\SpaceApe.Logger.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\packages\Unity.UnityEngine.UI.5.4.0\lib\net35\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="shared-unity-common">
+      <HintPath>..\packages\SpaceApe.UnityCommon.2.0.5\lib\unity54\shared-unity-common.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -50,7 +62,6 @@
     <Compile Include="JBConsole\JBCKeyBinding.cs" />
     <Compile Include="JBConsole\JBCLogPassThrough.cs" />
     <Compile Include="JBConsole\JBConsole.cs" />
-    <Compile Include="JBConsole\JBConsoleFontReference.cs" />
     <Compile Include="JBConsole\JBConsoleLogger.cs" />
     <Compile Include="JBConsole\JBConsoleUtils.cs" />
     <Compile Include="JBConsole\JBCStyle.cs" />
@@ -61,6 +72,25 @@
     <Compile Include="JBConsole\JBLogger.cs" />
     <Compile Include="JBConsole\JBPasswordEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="JBConsole\JBConsoleConfig.cs" />
+    <Compile Include="JBConsole\JBConsoleExternalUI.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\ExtendedScrollRect.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUI.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUILog.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogInspector.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogItem.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogScrollingOptions.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenu.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButton.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButtonActivator.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButtonColorer.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuController.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUISearch.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbar.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbarButton.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbarButtonColor.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\JBConsoleUITouchable.cs" />
+    <Compile Include="JBConsole\JBConsoleUnityUI\PooledList.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -70,6 +100,7 @@
     <None Include="..\README.md">
       <Link>README.md</Link>
     </None>
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenu.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

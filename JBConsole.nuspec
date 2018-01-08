@@ -5,7 +5,7 @@
     <id>SpaceApe.JBConsole</id>
 
     <!-- The package version number that is used when resolving dependencies -->
-    <version>1.0.9</version>
+    <version>1.0.10</version>
 
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>SpaceApeGames</authors>
@@ -22,9 +22,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 
     <!-- Any details about this particular release -->
-    <releaseNotes>Channels stay in sync with log output. And * and - channels are preserved after clear.
-JBConsole can now have a non-default arial font. Including a free monospace one as an option that will get prompted once.
-Allow max logs override.</releaseNotes>
+    <releaseNotes>Provide a UnityUI version of the console. Replaced the fontreference scriptable object with a config object to 
+    encapsulate the font and the ui references.
+    </releaseNotes>
 
     <!-- The description can be used in package manager UI. Note that the 
          nuget.org gallery uses information you add in the portal. -->
@@ -44,6 +44,7 @@ Allow max logs override.</releaseNotes>
 
   <files>
     <file src="RobotoMono-Regular.ttf" target="font" />
+    <file src="JBConsoleUI.prefab" target="ui" />
     <file src="unity-JBConsole/bin/Release/net35/SpaceApe.JBConsole.dll" target="lib/net35" />
     <file src="unity-JBConsole/bin/Release/net35/SpaceApe.JBConsole.dll.mdb" target="lib/net35" />
     <file src="unity-JBConsole-editor/bin/Release/net35/**/SpaceApe.JBConsole.Editor.dll" target="lib/net35" />

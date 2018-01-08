@@ -47,6 +47,7 @@ public class JBCInspector : MonoBehaviour {
             {
                 focusedLog = null;
                 console.Defocus();
+                console.SetSelectedLogOnExternalUIs(null);
             }
         }
 
@@ -89,7 +90,7 @@ public class JBCInspector : MonoBehaviour {
 
         if (GUILayout.Button("Copy", console.style.MenuStyle))
         {
-            var str = focusedLog.message + "\n" + stack;
+            var str = focusedLog.GetMessage() + "\n" + stack;
             GUIUtility.systemCopyBuffer = str;
         }
 

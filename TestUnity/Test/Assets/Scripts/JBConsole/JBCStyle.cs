@@ -24,7 +24,7 @@ public class JBCStyle
 	
 	public JBCStyle()
 	{
-		Init(JBConsoleFontReference.GetDefaultFont());
+		Init(JBConsoleConfig.GetDefaultFont());
 	}
 	
 	public JBCStyle(Font font)

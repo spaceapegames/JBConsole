@@ -93,7 +93,7 @@ public class JBConsole : MonoBehaviour
 	private JBLogger logger;
 	public Font Font { get; private set; }
     private JBCStyle _style;
-    public JBCStyle style { get { if (_style == null) _style = new JBCStyle(Font ?? JBConsoleFontReference.GetDefaultFont()); return _style; } }
+    public JBCStyle style { get { if (_style == null) _style = new JBCStyle(Font ?? JBConsoleConfig.GetDefaultFont()); return _style; } }
 
 	public void SetFont(Font font)
 	{

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections;
@@ -7,7 +8,7 @@ using com.spaceape.jbconsole;
 public class JBConsoleWindow : EditorWindow
 {
 	const string ASSETPATH_FONTREFERENCE = "Assets/Resources/JBConsoleFontReference.asset";
-	private Font font;
+	const string ASSETPATH_JBCONSOLECONFIG = "Assets/Resources/JBConsoleConfig.asset";
 
 	void Start () {
 	
@@ -21,25 +22,29 @@ public class JBConsoleWindow : EditorWindow
 
 	private void OnEnable()
 	{
-		TryInstallDefaultFontReference();
+		TrySetupData();
 	}
 
-	private static void TryInstallDefaultFontReference()
+	private static void TrySetupData()
 	{
-		var fontReference = AssetDatabase.LoadAssetAtPath<JBConsoleFontReference>(ASSETPATH_FONTREFERENCE);
-		if (!fontReference)
+		// first remove the old font reference
+		AssetDatabase.DeleteAsset(ASSETPATH_FONTREFERENCE);
+		
+		var consoleConfig = AssetDatabase.LoadAssetAtPath<JBConsoleConfig>(ASSETPATH_JBCONSOLECONFIG);
+		if (!consoleConfig)
 		{
-			InstallFontReference();
+			InstallConfig();
 		}
 	}
-
-	[MenuItem("SpaceApe/JBConsole/Install Font Reference")]
-	static void InstallFontReference()
+	
+	[MenuItem("SpaceApe/JBConsole/Install Config")]
+	static void InstallConfig()
 	{
+		var config = ScriptableObject.CreateInstance<JBConsoleConfig>();
+		var selectConfig = false;
 		var font = AssetDatabase.LoadAssetAtPath<Font>("Assets/Plugins/Nuget/SpaceApe.JBConsole/font/RobotoMono-Regular.ttf");
 		if (font)
 		{
-			var fontReference = ScriptableObject.CreateInstance<JBConsoleFontReference>();
 			var useMonoSpace = EditorUtility.DisplayDialog("JBConsole Monospace Font",
 				"Do you want to use the JBConsole monospace font?\n\t"
 				+ (font.fontNames != null && font.fontNames.Length > 0 ? font.fontNames[0] : font.name)
@@ -48,13 +53,25 @@ public class JBConsoleWindow : EditorWindow
 				"No, I will do it myself/ignore");
 			if (useMonoSpace)
 			{
-				fontReference.font = font;
+				config.font = font;
 			}
-			AssetDatabase.CreateAsset(fontReference, ASSETPATH_FONTREFERENCE);
-			if (!useMonoSpace)
+			else
 			{
-				Selection.activeObject = fontReference;
+				selectConfig = true;
 			}
+		}
+
+		var ui = AssetDatabase.LoadAssetAtPath<JBConsoleUI>("Assets/Plugins/Nuget/SpaceApe.JBConsole/ui/JBConsoleUI.prefab");
+		if (ui)
+		{
+			config.consoleUI = ui.gameObject;
+		}
+		
+		AssetDatabase.CreateAsset(config, ASSETPATH_JBCONSOLECONFIG);
+
+		if (!selectConfig)
+		{
+			Selection.activeObject = config;
 		}
 	}
 
@@ -83,10 +100,6 @@ public class JBConsoleWindow : EditorWindow
 			}
 			else
 			{
-				if (font && console.Font != font)
-				{
-					console.SetFont(font);
-				}
 				console.DrawGUI(position.width, position.height, 1, true);
 			}
 		}
