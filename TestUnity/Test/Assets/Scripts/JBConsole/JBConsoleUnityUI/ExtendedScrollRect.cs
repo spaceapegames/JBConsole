@@ -1,29 +1,38 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ExtendedScrollRect : ScrollRect
 {
-    /*
-    private RectTransform contentRectTransform = null;
+    private bool isDragging = false;
 
-    public System.Action OnContentMoved = delegate { };
+    public Action<bool> onScrollRectDragging = delegate { };
     
-    protected override void SetContentAnchoredPosition(Vector2 position)
+    public override void OnBeginDrag(PointerEventData eventData)
     {
-        if (contentRectTransform == null)
-        {
-            contentRectTransform = typeof(ScrollRect).GetField("m_Content", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(this) as RectTransform;
-        }       
-        
-        var prevPosition = contentRectTransform.anchoredPosition;
-        base.SetContentAnchoredPosition(position);
-        if (contentRectTransform.anchoredPosition != prevPosition)
-        {
-            OnContentMoved();
-        }
+        base.OnBeginDrag(eventData);
+        isDragging = true;
+        onScrollRectDragging(true);
     }
-    */
+
+    public override void OnEndDrag(PointerEventData eventData)
+    {
+        base.OnEndDrag(eventData);
+        isDragging = false;
+        onScrollRectDragging(false);
+    }
+
+    public bool IsDragging
+    {
+        get { return isDragging; }
+    }
+
+    public void StopMoving()
+    {
+        velocity = Vector2.zero;
+    }
 }

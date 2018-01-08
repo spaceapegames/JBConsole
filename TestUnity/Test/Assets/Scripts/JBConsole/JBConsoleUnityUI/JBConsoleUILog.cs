@@ -25,6 +25,8 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     
     [SerializeField] private PooledList logUI = null;
     [SerializeField] private JBConsoleUILogItem logItemPrefab = null;
+    [SerializeField] private JBConsoleUILogScrollingOptions scrollingOptions = null;
+    [SerializeField] private RectTransform logTransform = null;
 
     private List<ConsoleLogDetails> logs;
     private Vector2 logUISize = Vector2.zero;
@@ -33,6 +35,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     private ConsoleLevel consoleLevel = ConsoleLevel.Debug;
     private string searchTermLowercase = null;
     private HashSet<string> visibleChannels = new HashSet<string>();
+    private bool autoScrolling = true;
 
     public Action<ConsoleLog> OnConsoleLogSelected = delegate {  };
     
@@ -44,11 +47,14 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         logger.OnLogsCleared += LogsCleared;
         
         logs = new List<ConsoleLogDetails>(logger.maxLogs);
+
+        AutoScrolling = true;
         
         if (logUI != null)
         {
             logUI.listSizeChanged += LogUISizeChanged;
-            logUI.Initialise(this);
+            logUI.onAutoScrollCancelled += AutoScrollCancelled;
+            logUI.Initialise(this, autoScrolling);
         }
 
         if (logItemPrefab != null)
@@ -56,17 +62,45 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
             logItemPrefab.gameObject.SetActive(false);
         }
 
+        if (scrollingOptions != null)
+        {
+            scrollingOptions.onAutoScrollButtonPressed += EnableAutoScroll;
+            scrollingOptions.onScrollToTopButtonPressed += ScrollToTop;
+        }
+        
         GenerateItemPool();
         
         PopulateList();
     }
-
+    
     private void OnDestroy()
     {
         var logger = JBLogger.instance;
         logger.OnLogRemoved -= LogRemoved;
         logger.OnLogAdded -= LogAdded;
         logger.OnLogsCleared -= LogsCleared;
+    }
+
+    public bool AutoScrolling
+    {
+        get 
+        {
+            return autoScrolling;            
+        }
+        private set
+        {
+            autoScrolling = value;
+            if (autoScrolling)
+            {
+                scrollingOptions.gameObject.SetActive(false);
+                logTransform.offsetMin = new Vector2(logTransform.offsetMin.x, 0);
+            }
+            else
+            {
+                scrollingOptions.gameObject.SetActive(true);                
+                logTransform.offsetMin = new Vector2(logTransform.offsetMin.x, scrollingOptions.RectTransform.rect.height);
+            }
+        }
     }
 
     private void GenerateItemForPool()
@@ -202,17 +236,41 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
     {
         if (logUISize != this.logUISize)
         {
-            this.logUISize = logUISize;
-
-            for (var i = 0; i < logs.Count; i++)
+            if (logUISize.x != this.logUISize.x)
             {
-                logs[i].ClearHeight();
-            }
+                this.logUISize = logUISize;
+
+                for (var i = 0; i < logs.Count; i++)
+                {
+                    logs[i].ClearHeight();
+                }
             
-            RefreshLogUI();
+                RefreshLogUI();                
+            }
+            // if height has changed then we just need to ensure the correct items are visble
+            else
+            {
+                RefreshLogItems();
+            }
+        }
+    }
+
+    private void AutoScrollCancelled()
+    {
+        Debug.Log("AutoScrollCancelled");
+        AutoScrolling = false;
+    }
+
+    // just updates what is currently rendered in the list
+    private void RefreshLogItems()
+    {
+        if (logUI != null)
+        {
+            logUI.RefreshItems();
         }
     }
     
+    // fully recalculate item positions and refresh visible ones.
     private void RefreshLogUI()
     {
         if (logUI != null)
@@ -318,4 +376,15 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         OnConsoleLogSelected(logItem.Log);
     }
 
+    private void EnableAutoScroll()
+    {
+        AutoScrolling = true;
+        logUI.EnableAutoScrolling();
+    }
+
+    private void ScrollToTop()
+    {
+        logUI.ScrollToTop();
+    }
+    
 }

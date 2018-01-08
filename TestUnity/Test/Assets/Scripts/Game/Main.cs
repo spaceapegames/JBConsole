@@ -50,7 +50,7 @@ public class Main : MonoBehaviour
 		
 		Logger.DebugCh("BLAH", "HELLO CHANNEL BLAH");
 		Logger.WarnCh("WEEE", "HELLO CHANNEL WEEE");
-		Logger.ErrorCh("MOOO", 0, "HELLO CHANNEL MOOO");
+		//Logger.ErrorCh("MOOO", 0, "HELLO CHANNEL MOOO");
 
 		var texts = new[]
 		{
@@ -59,8 +59,7 @@ public class Main : MonoBehaviour
 			"blee blooo, wiggle giggle blonk blonk nibbles"
 		};
 
-		/*
-		for (var i = 0; i < 150; i++)
+		for (var i = 0; i < 5; i++)
 		{
 			var textIndex = Random.Range(0, texts.Length);
 			var numRepeats = Random.Range(1, 5);
@@ -71,7 +70,7 @@ public class Main : MonoBehaviour
 			}
 			Logger.DebugCh("BLAH", text);
 		}
-		*/
+		
 		
 		//StartCoroutine(SlowLogger());
 	}

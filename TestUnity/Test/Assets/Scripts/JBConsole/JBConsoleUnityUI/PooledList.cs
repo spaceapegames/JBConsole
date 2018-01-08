@@ -30,8 +30,10 @@ public class PooledList : MonoBehaviour
     private float contentHeight = 0;
     private RectTransform rectTransform = null;
     private bool sizeChanged = false;
+    private bool autoScroll = false;
 
     public Action<Vector2> listSizeChanged = delegate { };
+    public Action onAutoScrollCancelled = delegate { };
 
     private void Awake()
     {
@@ -52,6 +54,7 @@ public class PooledList : MonoBehaviour
             scrollRect.scrollSensitivity = 1;
 
             scrollRect.onValueChanged.AddListener(ScrollRectChanged);
+            scrollRect.onScrollRectDragging += ScrollRectIsDragging;
         }
         
         if (scrollingContent == null)
@@ -74,17 +77,35 @@ public class PooledList : MonoBehaviour
 
     }
 
+    private void UpdateAutoScroll()
+    {
+        if (rectTransform != null && autoScroll)
+        {
+            var visibleHeight = rectTransform.rect.height;
+            if (visibleHeight > 0 && contentHeight > visibleHeight)
+            {
+                var anchoredPosition = scrollingContent.anchoredPosition;
+                anchoredPosition.y = contentHeight - visibleHeight;
+                scrollingContent.anchoredPosition = anchoredPosition;                
+                //Debug.Log("Applying autoscroll, position = "+anchoredPosition+" contentHeight = "+contentHeight+" visibleHeight = "+visibleHeight);
+            }
+        }        
+    }
+    
     private void SetScrollingContentHeight(float height)
     {
         var sizeDelta = scrollingContent.sizeDelta;
         sizeDelta.y = height;
         scrollingContent.sizeDelta = sizeDelta;
         contentHeight = height;
+
+        UpdateAutoScroll();
     }
     
-    public void Initialise(iPooledListProvider listProvider, int maxListSize = 0)
+    public void Initialise(iPooledListProvider listProvider, bool autoScroll, int maxListSize = 0)
     {
         this.listProvider = listProvider;
+        this.autoScroll = autoScroll;
         listItemPositions = new List<float>(maxListSize);
         EnsureComponentsCreated();
 
@@ -374,6 +395,7 @@ public class PooledList : MonoBehaviour
         {
             sizeChanged = false;
             UpdateVisibleWindow();
+            UpdateAutoScroll();
         }
     }
 
@@ -394,18 +416,45 @@ public class PooledList : MonoBehaviour
             listSizeChanged(rectTransform.rect.size);            
         }
     }
+
+    public void RefreshItems()
+    {
+        RefreshVisibleListItems();
+
+    }
     
     private void ScrollRectChanged(Vector2 scroll)
     {
         UpdateVisibleWindow();
-        RefreshVisibleListItems();
+        RefreshItems();
+    }
+
+    private void ScrollRectIsDragging(bool isDragging)
+    {
+        var visibleHeight = rectTransform.rect.height;
+        var scrollingContentHeight = scrollingContent.rect.height;
+        var needsScrolling = visibleHeight > 0 && scrollingContentHeight > 0 && scrollingContentHeight > visibleHeight;
+        
+        if (needsScrolling && isDragging && autoScroll)
+        {
+            autoScroll = false;
+            onAutoScrollCancelled();
+        }            
+    }
+
+    public void ScrollToTop()
+    {
+        var anchoredPosition = scrollingContent.anchoredPosition;
+        anchoredPosition.y = 0;
+        scrollingContent.anchoredPosition = anchoredPosition;
+        scrollRect.StopMoving();
+    }
+
+    public void EnableAutoScrolling()
+    {
+        autoScroll = true;
+        UpdateAutoScroll();
+        scrollRect.StopMoving();
     }
     
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.A))
-        {
-            RefreshVisibleListItems();
-        }
-    }
 }
