@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Collections;
+using UnityEngine;
 
 [System.Serializable]
 public class JBLogger
@@ -37,6 +38,10 @@ public class JBLogger
     public List<ConsoleLog> Logs { get{return logs;} }
 	public int stateHash { get { return _stateHash;} } // or just use delegate?
 
+    public Action OnLogsCleared = delegate { };
+    public Action<int> OnLogRemoved = delegate { };
+    public Action<ConsoleLog> OnLogAdded = delegate { };
+    
 	private static JBLogger _instance;
 
 	public static JBLogger instance
@@ -231,7 +236,7 @@ public class JBLogger
     public ConsoleLog AddCh(ConsoleLevel level, string channel, object[] objects)
     {
         var log = new ConsoleLog();
-        log.message = GetStringOf(objects, emptyRefList);
+        log.SetMessage(GetStringOf(objects, emptyRefList));
         log.level = level;
         log.channel = channel;
         log.Time = DateTime.UtcNow;
@@ -247,7 +252,7 @@ public class JBLogger
     public ConsoleLog AddCh(ConsoleLevel level, string channel, string message)
     {
         var log = new ConsoleLog();
-        log.message = message;
+        log.SetMessage(message);
         log.level = level;
         log.channel = channel;
         log.Time = DateTime.UtcNow;
@@ -261,9 +266,9 @@ public class JBLogger
         lock (this)
         {
             int count = logs.Count;
-            if (count > 0 && logs[count - 1].message == log.message)
+            if (count > 0 && logs[count - 1].GetMessage() == log.GetMessage())
             {
-                logs[count - 1].repeats++;
+                logs[count - 1].IncreaseRepeats();
                 Changed();
                 return;
             }
@@ -272,6 +277,7 @@ public class JBLogger
             if(RecordStackTrace) log.stackTrace = new StackTrace(3, true);
 
             logs.Add(log);
+            OnLogAdded(log);
             if (!channels.Contains(log.channel))
             {
                 channels.Add(log.channel);
@@ -283,6 +289,7 @@ public class JBLogger
             if (count >= maxLogs)
             {
                 logs.RemoveAt(0);
+                OnLogRemoved(0);
             }
             Changed();
         }
@@ -292,6 +299,7 @@ public class JBLogger
 	{
 		ResetChannels();
 		logs.Clear();
+	    OnLogsCleared();
 		Changed();
 	}
 
@@ -318,14 +326,34 @@ public class ConsoleLog: IConsoleLog
     public DateTime Time;
     public ConsoleLevel level;
     public string channel;
-    public string message;
+    private string message;
     public StackTrace stackTrace;
-    public int repeats;
     public List<WeakReference> references;
 
+    public Action<ConsoleLog> OnRepeatsChanged = delegate { };
+
+    private string messageLowercase;
+    private int repeats;
+
+    public int GetRepeats()
+    {
+        return repeats;
+    }
+
+    public void IncreaseRepeats()
+    {
+        repeats++;
+        OnRepeatsChanged(this);
+    }
+    
     public string GetUnityLimitedMessage()
     {
-        var message = this.message;
+        var message = ApplyUnityLimitations(this.message);
+        return message;
+    }
+
+    public string ApplyUnityLimitations(string message)
+    {
         const int MAX_LENGTH = System.UInt16.MaxValue / 4 - 1; //From unity source
         if (message.Length > MAX_LENGTH)
         {
@@ -333,7 +361,7 @@ public class ConsoleLog: IConsoleLog
         }
         return message;
     }
-
+    
     public DateTime GetTime()
     {
         return Time;
@@ -349,9 +377,45 @@ public class ConsoleLog: IConsoleLog
         return channel;
     }
 
+    public void SetMessage(string message)
+    {
+        this.message = ApplyUnityLimitations(message);
+        messageLowercase = message.ToLower();
+    }
+    
     public string GetMessage()
     {
         return message;
+    }
+    
+    public Color GetColorForLevel()
+    {
+        switch (level)
+        {
+            default:
+            case ConsoleLevel.Debug: return JBCStyle.DEBUG_COLOR;
+            case ConsoleLevel.Info: return JBCStyle.INFO_COLOR;
+            case ConsoleLevel.Warn: return JBCStyle.WARN_COLOR;
+            case ConsoleLevel.Error: return JBCStyle.ERROR_COLOR;
+            case ConsoleLevel.Fatal: return JBCStyle.FATAL_COLOR;
+        }
+    }
+    
+    public string GetMessageToShowInLog(bool includeRepeats = true)
+    {
+        if (includeRepeats && repeats > 0)
+        {
+            return (repeats + 1) + "x " + GetMessage();
+        }
+        else
+        {
+            return Time.ToLongTimeString() + "-" + GetMessage();
+        }
+    }
+    
+    public string GetMessageLowercase()
+    {
+        return messageLowercase;
     }
 
     public StackTrace GetStackTrace()

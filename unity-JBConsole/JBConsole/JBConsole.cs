@@ -7,6 +7,42 @@ public delegate void JBConsoleMenuHandler();
 public delegate void JBCDrawBodyHandler(float width, float height, float scale = 1);
 public delegate void JBCLogSelectedHandler(ConsoleLog log);
 
+public struct JBConsoleStateMenuItem
+{
+	public enum VisualType
+	{
+		Button,
+		Toggle,
+		Folder,
+		ParentFolder,
+	}
+	
+	public string Text;
+	public bool ToggleValue;
+	public VisualType Visual;
+	public int Index;
+	public JBCustomMenu.MenuItem MenuItem;
+}
+
+public struct JBConsoleState
+{
+	public int CurrentToolbarIndex;
+	public JBConsoleStateMenuItem[] Menu;
+	public string SearchTerm;
+	
+	public ConsoleMenu? CurrentConsoleMenu
+	{
+		get
+		{
+			if (CurrentToolbarIndex == -1)
+			{
+				return null;
+			}
+			return (ConsoleMenu) CurrentToolbarIndex;
+		}
+	}
+}
+
 public class JBConsole : MonoBehaviour
 {
 	public static bool isEditor = false;
@@ -22,7 +58,7 @@ public class JBConsole : MonoBehaviour
 		if(instance == null)
 		{
 			var go = new GameObject("JBConsole");
-			instance = go.AddComponent<JBConsole>();
+			instance = go.AddComponent<JBConsole>();			
 			instance.Visible = visible;
 			JBConsole.isEditor = Application.isEditor;
 		}
@@ -39,7 +75,7 @@ public class JBConsole : MonoBehaviour
 	public static void AddMenu(string name, Action callback)
     {
         if (!Exists) return;
-		instance.Menu.Add(name, callback);
+		instance.Menu.AddButton(name, callback);
     }
 
     public static void RemoveMenu(string name)
@@ -48,11 +84,16 @@ public class JBConsole : MonoBehaviour
 		instance.Menu.Remove(name);
     }
 
+	public static void AddToggle(string name, Action toggleCallback, Func<bool> getterCallback)
+	{
+		if (!Exists) return;
+		instance.Menu.AddToggle(name, toggleCallback, getterCallback);
+	}
 	
 	private JBLogger logger;
 	public Font Font { get; private set; }
     private JBCStyle _style;
-    public JBCStyle style { get { if (_style == null) _style = new JBCStyle(Font ?? JBConsoleFontReference.GetDefaultFont()); return _style; } }
+    public JBCStyle style { get { if (_style == null) _style = new JBCStyle(Font ?? JBConsoleConfig.GetDefaultFont()); return _style; } }
 
 	public void SetFont(Font font)
 	{
@@ -62,20 +103,26 @@ public class JBConsole : MonoBehaviour
 			_style.SetFont(font);
 		}
 	}
+
+	private List<JBConsoleExternalUI> externalUIs = null;
 	
     public int menuItemWidth = 135;
     public int BaseDPI = 100;
     private bool _visible = true;
-    public bool Visible
-    {
-        get { return _visible; }
-        set
-        {
-            _visible = value;
-            if (OnVisiblityChanged != null) OnVisiblityChanged();
-        }
-    }
+	public bool Visible
+	{
+		get { return _visible; }
+		set
+		{
+			_visible = value;
 
+			var state = State;
+			ExternalUIAction((ui) => ui.SetActive(_visible, state));
+	        
+			if (OnVisiblityChanged != null) OnVisiblityChanged();
+		}
+	}
+	
 	public JBCustomMenu Menu {get; private set;}
 
 	public event Action OnVisiblityChanged;
@@ -127,7 +174,7 @@ public class JBConsole : MonoBehaviour
 		Menu = new JBCustomMenu();
         levels = Enum.GetNames(typeof(ConsoleLevel));
         topMenu = currentTopMenu = Enum.GetNames(typeof(ConsoleMenu));
-		Menu.Add("Clear", Clear);
+		Menu.AddButton("Clear", Clear);
 	}
 
 	private void OnDestroy()
@@ -183,42 +230,49 @@ public class JBConsole : MonoBehaviour
 			scrolled |= Mathf.Abs(scrollVelocity) > 3f;
 		}
 	}
-
+	
     void OnMenuSelection(int index)
     {
         if (currentTopMenuIndex == index)
         {
             index = -1;
         }
-        currentSubMenu = null;
         switch (index)
         {
             case (int)ConsoleMenu.Channels:
+	            currentSubMenu = null;
                 UpdateChannelsSubMenu();
                 subMenuHandler = OnChannelClicked;
                 break;
             case (int)ConsoleMenu.Levels:
+	            currentSubMenu = null;
                 UpdateLevelsSubMenu();
                 subMenuHandler = OnLevelClicked;
                 break;
             case (int)ConsoleMenu.Search:
-                searchTerm = "";
+	            currentSubMenu = null;
                 break;
             case (int)ConsoleMenu.Menu:
+	            currentSubMenu = null;
 				Menu.PopToRoot();
 				subMenuHandler = Menu.OnCurrentLinkClicked;
                 break;
             case (int)ConsoleMenu.Hide:
                 Visible = !Visible;
                 return;
+			case -1:
+				currentSubMenu = null;
+				break;
         }
 
 		EnsureScrollPosition();
         currentTopMenuIndex = index;
         currentTopMenu = SelectedStateArrayIndex(topMenu, index, true);
+
+	    UpdateExternalUIState();
     }
 
-    void OnChannelClicked(int index)
+    public void OnChannelClicked(int index)
     {
         string channel = logger.Channels[index];
         if (channel == JBLogger.allChannelsName)
@@ -243,6 +297,8 @@ public class JBConsole : MonoBehaviour
         }
         UpdateChannelsSubMenu();
         clearCache();
+	    LogRefreshNeeded();
+	    UpdateExternalUIState();
     }
 
 	private void HandleChannelAdded()
@@ -250,14 +306,17 @@ public class JBConsole : MonoBehaviour
 		if (currentTopMenuIndex == (int) ConsoleMenu.Channels)
 		{
 			UpdateChannelsSubMenu();
+			UpdateExternalUIState();
 		}
 	}
 
-    void OnLevelClicked(int index)
+    public void OnLevelClicked(int index)
     {
         viewingLevel = (ConsoleLevel)Enum.GetValues(typeof(ConsoleLevel)).GetValue(index);
         UpdateLevelsSubMenu();
         clearCache();
+	    LogRefreshNeeded();
+	    UpdateExternalUIState();
     }
 
     void UpdateChannelsSubMenu()
@@ -305,7 +364,7 @@ public class JBConsole : MonoBehaviour
 	
 	void OnGUI ()
 	{
-        if (!Visible && ToastLog == null) return;            
+        if (HasExternalUI() || (!Visible && ToastLog == null)) return;            
 
         var depth = GUI.depth;
 		GUI.depth = int.MaxValue - 10;
@@ -371,7 +430,8 @@ public class JBConsole : MonoBehaviour
 		{
 			currentSubMenu = Menu.GetCurrentMenuLink();
 		}
-        if (currentSubMenu != null)
+        
+	    if (currentSubMenu != null)
         {
 			if(currentSubMenu.Length == 0)
 			{
@@ -536,9 +596,10 @@ public class JBConsole : MonoBehaviour
 		if (clickedLog != null && OnLogSelectedHandler != null)
 		{
 			OnLogSelectedHandler(clickedLog);
+			SetSelectedLogOnExternalUIs(clickedLog);
 		}
     }
-
+	
     public void Focus(JBCDrawBodyHandler drawBodyHandler)
     {
         DrawGUIBodyHandler = drawBodyHandler;
@@ -569,9 +630,10 @@ public class JBConsole : MonoBehaviour
 		for (int i = cachedLogs.Count - 1; i >= 0; i--)
 		{
 			log = cachedLogs[i];
-			if(log.repeats > 0)
+			var repeats = log.GetRepeats();
+			if(repeats > 0)
 			{
-                GUILayout.Label((log.repeats + 1) + "x " + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
+                GUILayout.Label((repeats + 1) + "x " + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
 			}
 			else
 			{
@@ -590,7 +652,7 @@ public class JBConsole : MonoBehaviour
 	{
 		return (log.level >= viewingLevel 
 			&& (viewingChannels == null || Array.IndexOf(viewingChannels, log.channel) >= 0)
-	        && (searchTerm == "" || log.message.ToLower().Contains(searchTerm)));
+	        && (searchTerm == "" || log.GetMessageLowercase().Contains(searchTerm.ToLower())));
 	}
 	
 	void CacheBottomOfLogs(float width, float height)
@@ -638,6 +700,258 @@ public class JBConsole : MonoBehaviour
 	    var comp = gameObject.GetComponent<T>() ?? gameObject.AddComponent<T>();
 	    return comp;
 	}
+
+	public bool HasExternalUI()
+	{
+		return externalUIs != null && externalUIs.Count > 0;
+	}	
+	
+	private void ExternalUIAction(Action<JBConsoleExternalUI> action)
+	{
+		if (action != null && externalUIs != null)
+		{
+			foreach (var externalUI in externalUIs)
+			{
+				if (externalUI != null)
+				{
+					action(externalUI);
+				}
+			}				
+		}
+	}
+	
+	public void AddExternalUI(JBConsoleExternalUI externalUI)
+	{
+		if (externalUIs == null)
+		{
+			externalUIs = new List<JBConsoleExternalUI>();
+		}
+
+		if (!externalUIs.Contains(externalUI))
+		{
+			externalUIs.Add(externalUI);
+			externalUI.AddToolbarButtonListener(ExternalUIToolbarButtonPressed);	
+			externalUI.AddMenuButtonListener(ExternalUIMenuButtonPressed);
+			externalUI.AddSearchTermChangedListener(ExternalUISearchTermChanged);
+			externalUI.AddConsoleLogSelectedListener(ExternalUIConsoleLogSelected);
+			externalUI.SetActive(_visible, State);
+		}		
+	}
+
+	public void RemoveExternalUI(JBConsoleExternalUI externalUI)
+	{
+		if (externalUIs == null)
+		{
+			return;
+		}
+
+		if (externalUIs.Contains(externalUI))
+		{
+			externalUI.RemoveToolbarButtonListener(ExternalUIToolbarButtonPressed);		
+			externalUI.RemoveMenuButtonListener(ExternalUIMenuButtonPressed);
+			externalUI.RemoveSearchTermChangedListener(ExternalUISearchTermChanged);
+			externalUI.AddConsoleLogSelectedListener(ExternalUIConsoleLogSelected);
+			externalUIs.Remove(externalUI);
+		}		
+	}
+	
+	private void ExternalUIMenuButtonPressed(JBConsoleStateMenuItem menuItem)
+	{
+		switch (currentTopMenuIndex)
+		{
+			case (int)ConsoleMenu.Channels:
+			{
+				OnChannelClicked(menuItem.Index);
+			} break;
+				
+			case (int)ConsoleMenu.Levels:
+			{
+				OnLevelClicked(menuItem.Index);
+			} break;
+			
+			case (int)ConsoleMenu.Menu:
+			{
+				Menu.OnCurrentLinkClicked(menuItem.Index);
+				UpdateExternalUIState();
+			} break;
+		}	
+	}
+	
+	private void ExternalUIToolbarButtonPressed(ConsoleMenu? newConsoleMenu)
+	{
+		Defocus();
+		int selectionIndex = -1;
+		if (newConsoleMenu != null)
+		{
+			selectionIndex = (int) newConsoleMenu.Value;
+		}
+		OnMenuSelection(selectionIndex);	
+	}
+
+	private void ExternalUIConsoleLogSelected(ConsoleLog consoleLog)
+	{
+		if (consoleLog == null)
+		{
+			Defocus();
+		}
+		else
+		{
+			OnLogSelectedHandler(consoleLog);
+		}
+	}
+	
+	private void ExternalUISearchTermChanged(string searchTerm)
+	{
+		this.searchTerm = searchTerm;
+		LogRefreshNeeded();
+	}
+
+	public void SetSelectedLogOnExternalUIs(ConsoleLog consoleLog)
+	{
+		ExternalUIAction((ui) => ui.LogSelected(consoleLog));
+	}
+	
+	private void LogRefreshNeeded()
+	{
+		ExternalUIAction((ui) => ui.RefreshLog(viewingLevel, searchTerm, viewingChannels));
+	}
+	
+	private void UpdateExternalUIState()
+	{
+		var state = State;
+		ExternalUIAction((ui) => ui.StateChanged(state));
+	}
+	
+	public JBConsoleStateMenuItem[] GetCurrentMenu()
+	{
+		JBConsoleStateMenuItem[] menu = null;
+		switch (currentTopMenuIndex)
+		{
+			case (int)ConsoleMenu.Channels:
+			{
+				var channels = logger.Channels.ToArray();
+				menu = new JBConsoleStateMenuItem[channels.Length];
+				var hasViewingChannels = viewingChannels != null && viewingChannels.Length > 0;
+				for (var i = 0; i < channels.Length; i++)
+				{
+					var currentlyViewingChannel = hasViewingChannels ? Array.IndexOf(viewingChannels, channels[i]) >= 0 : i == 0;
+
+					var menuItem = new JBConsoleStateMenuItem()
+					{
+						Text = channels[i],
+						ToggleValue = currentlyViewingChannel,
+						Visual = JBConsoleStateMenuItem.VisualType.Toggle,
+						Index = i,
+					};
+					menu[i] = menuItem;
+				}				
+			} break;
+				
+			case (int)ConsoleMenu.Levels:
+			{
+				menu = new JBConsoleStateMenuItem[levels.Length];
+				for (var i = 0; i < levels.Length; i++)
+				{
+					var menuItem = new JBConsoleStateMenuItem()
+					{
+						Text = levels[i],
+						ToggleValue = i == (int)viewingLevel,
+						Visual = JBConsoleStateMenuItem.VisualType.Toggle,
+						Index = i,
+					};
+					menu[i] = menuItem;
+				}				
+			} break;
+			
+			case (int)ConsoleMenu.Menu:
+			{
+				var currentMenuItem = Menu.GetCurrentMenuItem();
+				if (currentMenuItem != null)
+				{
+					var menuItems = new List<JBConsoleStateMenuItem>();
+					var startIndex = 0;
+					if (currentMenuItem.HasParent())
+					{
+						menuItems.Add(new JBConsoleStateMenuItem()
+						{
+							Text = "<<",
+							ToggleValue = false,
+							Visual = JBConsoleStateMenuItem.VisualType.ParentFolder,
+							Index = 0,
+						});
+						startIndex++;
+					}
+					if (currentMenuItem.Children != null)
+					{
+						for (var i = 0; i < currentMenuItem.Children.Count; i++)
+						{
+							var childItem = currentMenuItem.Children[i];
+							var visualType = JBConsoleStateMenuItem.VisualType.Button;
+							if (childItem.HasChildren())
+							{
+								visualType = JBConsoleStateMenuItem.VisualType.Folder;
+							}
+							else if (childItem.ItemType == JBCustomMenu.MenuItem.MenuItemType.Toggle)
+							{
+								visualType = JBConsoleStateMenuItem.VisualType.Toggle;
+							}
+							menuItems.Add(new JBConsoleStateMenuItem()
+							{
+								Text = childItem.GetRawLinkName(),
+								ToggleValue = childItem.GetToggleValue(),
+								Visual = visualType,
+								Index = startIndex + i,
+								MenuItem = childItem,
+							});
+						}
+					}
+					menu = menuItems.ToArray();
+				}
+				else
+				{
+					menu = new JBConsoleStateMenuItem[0];
+				}
+				/*
+				var currentMenus = Menu.GetCurrentMenuLink();
+				if (currentMenus != null)
+				{
+					menu = new JBConsoleStateMenuItem[currentMenus.Length];
+					for (var i = 0; i < currentMenus.Length; i++)
+					{
+						var menuItem = new JBConsoleStateMenuItem()
+						{
+							Text = currentMenus[i],
+							ToggleValue = false,
+							Visual = JBConsoleStateMenuItem.VisualType.Button,
+							Index = i,
+						};
+						menu[i] = menuItem;
+					}
+				}
+				else
+				{
+					menu = new JBConsoleStateMenuItem[0];
+				}
+				*/
+			} break;
+		}
+		return menu;	
+	}
+	
+	public JBConsoleState State
+	{
+		get
+		{
+			JBConsoleStateMenuItem[] menu = GetCurrentMenu();
+			return new JBConsoleState()
+			{
+				CurrentToolbarIndex = currentTopMenuIndex,
+				SearchTerm = searchTerm,
+				Menu = menu
+			};
+		}
+	}
+	
 }
 
 public enum ConsoleMenu

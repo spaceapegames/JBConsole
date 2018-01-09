@@ -3,14 +3,14 @@ from subprocess import call
 import os
 import sys
 
-os.chdir(os.path.join(sys.path[0],".."))
+os.chdir(sys.path[0])
 
 
 # because file needs to be packages.config, put it in own directory
-packagesFile = os.path.join("packages-versioned","packages.config")
+packagesFile = os.path.join("unity-JBConsole","packages.config")
 if os.path.isfile(packagesFile):
-	call(["nuget", "install",packagesFile,"-outputdirectory","packages-versioned"])
+	call(["nuget", "install",packagesFile,"-outputdirectory","packages"])
 
-packagesFile = os.path.join("packages","packages.config")
+packagesFile = os.path.join("unity-JBConsole-editor","packages.config")
 if os.path.isfile(packagesFile):
-	call(["nuget", "install",packagesFile,"-excludeversion","-outputdirectory","packages"])
+	call(["nuget", "install",packagesFile,"-outputdirectory","packages"])

@@ -8,6 +8,12 @@ public class JBCStyle
 	private const int MENU_FONT_SIZE = 14;
 	private const int LOG_FONT_SIZE = 12;
 	
+	public static Color DEBUG_COLOR = new Color(0.62f, 0.82f, 0.62f);
+	public static Color INFO_COLOR = new Color(1f, 0.87f, 0.87f);
+	public static Color WARN_COLOR = new Color(1f, 0.47f, 0.47f);
+	public static Color ERROR_COLOR = new Color(1f, 0.133f, 0.133f);
+	public static Color FATAL_COLOR = new Color(1f, 0.133f, 0.133f);
+	
 	readonly Dictionary<ConsoleLevel, GUIStyle> levelToStyle = new Dictionary<ConsoleLevel, GUIStyle>();
 
     GUIStyle boxStyle;
@@ -18,7 +24,7 @@ public class JBCStyle
 	
 	public JBCStyle()
 	{
-		Init(JBConsoleFontReference.GetDefaultFont());
+		Init(JBConsoleConfig.GetDefaultFont());
 	}
 	
 	public JBCStyle(Font font)
@@ -65,11 +71,11 @@ public class JBCStyle
 		menuStyle.normal.textColor = new Color(0.8f, 0.6f, 0f);
 
 		levelToStyle.Clear();
-		levelToStyle[ConsoleLevel.Debug] = MakeLogStyle(font, new Color(0.62f, 0.82f, 0.62f));
-		levelToStyle[ConsoleLevel.Info] = MakeLogStyle(font, new Color(1f, 0.87f, 0.87f));
-		levelToStyle[ConsoleLevel.Warn] = MakeLogStyle(font, new Color(1f, 0.47f, 0.47f));
-		levelToStyle[ConsoleLevel.Error] = MakeLogStyle(font, new Color(1f, 0.133f, 0.133f));
-		levelToStyle[ConsoleLevel.Fatal] = MakeLogStyle(font, new Color(1f, 0.133f, 0.133f));
+		levelToStyle[ConsoleLevel.Debug] = MakeLogStyle(font, DEBUG_COLOR);
+		levelToStyle[ConsoleLevel.Info] = MakeLogStyle(font, INFO_COLOR);
+		levelToStyle[ConsoleLevel.Warn] = MakeLogStyle(font, WARN_COLOR);
+		levelToStyle[ConsoleLevel.Error] = MakeLogStyle(font, ERROR_COLOR);
+		levelToStyle[ConsoleLevel.Fatal] = MakeLogStyle(font, FATAL_COLOR);
 	}
 
 	internal void SetFont(Font font)

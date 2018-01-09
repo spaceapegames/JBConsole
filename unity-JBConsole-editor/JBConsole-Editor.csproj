@@ -28,6 +28,12 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/Editor/SpaceApe.JBConsole.Editor.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/Editor/SpaceApe.JBConsole.Editor.dll" workingdir="" />
+        <Command type="AfterBuild" command="cp ${ProjectDir}/bin/${ProjectConfig}/net35/Editor/shared-unity-common-editor.dll ${ProjectDir}/../unity-build-unity-project/Assets/Plugins/Editor/shared-unity-common-editor.dll" />
+      </CustomCommands>
+    </CustomCommands>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -41,6 +47,12 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\packages\Unity.UnityEngine.5.4.0\lib\net35\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceApe.CommonEditor">
+      <HintPath>..\packages\SpaceApe.Common.1.0.5\lib\net35\Editor\SpaceApe.CommonEditor.dll</HintPath>
+    </Reference>
+    <Reference Include="shared-unity-common-editor">
+      <HintPath>..\packages\SpaceApe.UnityCommon.2.0.5\lib\unity54\Editor\shared-unity-common-editor.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
