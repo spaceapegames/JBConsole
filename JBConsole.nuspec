@@ -48,8 +48,8 @@
     <file src="unity-build-unity-project/Assets/UI/JBConsoleUI.prefab.meta" target="ui" />
     <file src="unity-build-unity-project/Assets/Plugins/SpaceApe.JBConsole.dll" target="lib/net35" />
     <file src="unity-build-unity-project/Assets/Plugins/SpaceApe.JBConsole.dll.meta" target="lib/net35" />
-    <file src="unity-build-unity-project/Assets/Plugins/Editor/SpaceApe.JBConsole.Editor.dll" target="lib/net35" />
-    <file src="unity-build-unity-project/Assets/Plugins/Editor/SpaceApe.JBConsole.Editor.dll.meta" target="lib/net35" />
+    <file src="unity-build-unity-project/Assets/Plugins/**/Editor/SpaceApe.JBConsole.Editor.dll" target="lib/net35" />
+    <file src="unity-build-unity-project/Assets/Plugins/**/Editor/SpaceApe.JBConsole.Editor.dll.meta" target="lib/net35" />
 <!--
     <file src="unity-JBConsole/bin/Release/net35/SpaceApe.JBConsole.dll" target="lib/net35" />
 -->
