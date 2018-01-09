@@ -230,14 +230,14 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
             }            
         }
         
-        RefreshLogUI();        
+        logUI.ClearAndRebuild();
     }
     
     private void LogUISizeChanged(Vector2 logUISize)
     {
         if (logUISize != this.logUISize)
         {
-            //if (logUISize.x != this.logUISize.x)
+            if (logUISize.x != this.logUISize.x)
             {
                 this.logUISize = logUISize;
 
@@ -246,13 +246,12 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
                     logs[i].ClearHeight();
                 }
             
-                RefreshLogUI();                
+                logUI.ClearAndRebuild();
             }
-            // if height has changed then we just need to ensure the correct items are visble
-            //else
-            //{
-           //     RefreshLogItems();
-           // }
+            else
+            {
+                logUI.SetNeedToUpdateItemsInVisibleWindow();
+            }
         }
     }
 
@@ -273,24 +272,6 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         //Debug.Log("AutoScrollCancelled");
         AutoScrolling = false;
     }
-
-    // just updates what is currently rendered in the list
-    private void RefreshLogItems()
-    {
-        if (logUI != null)
-        {
-            logUI.RefreshItems();
-        }
-    }
-    
-    // fully recalculate item positions and refresh visible ones.
-    private void RefreshLogUI()
-    {
-        if (logUI != null)
-        {
-            logUI.Refresh();
-        }        
-    }
     
     private void LogRemoved(int logIndex)
     {
@@ -301,13 +282,10 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 
         logs.RemoveAt(logIndex);
 
-        //Debug.Log("LogRemoved " + logIndex);
-
         if (logUI != null)
         {
             logUI.ItemRemoved(logIndex);
         }
-        RefreshLogUI();
     }
 
     private void LogsCleared()
@@ -316,8 +294,6 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
 		{
 			return;
 		}
-
-		//Debug.Log("LogsCleared");
 
         PopulateList();
     }
@@ -337,8 +313,6 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
                 height = null
             });
         }
-        
-        //Debug.Log("LogAdded "+consoleLog.GetMessage());
         
         if (logUI != null)
         {
