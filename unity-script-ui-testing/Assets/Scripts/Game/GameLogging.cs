@@ -4,9 +4,7 @@ using com.spaceape.jbconsole;
 using Debug = UnityEngine.Debug;
 
 public class GameLogging : MonoBehaviour
-{
-    [SerializeField] private GameObject JBConsoleUI;
-    
+{    
     private LogstashLogger LogstashLogger { get; set;}
 
     private JBPasswordEntry passwordEntry;
@@ -101,7 +99,7 @@ public class GameLogging : MonoBehaviour
             return;
         }
 
-        JBConsole.Start(JBConsoleUI);
+        JBConsole.Start(false);
         JBConsole.instance.menuItemWidth = 100;
         JBConsole.instance.Visible = false;
         ApplyJBPrefs();
