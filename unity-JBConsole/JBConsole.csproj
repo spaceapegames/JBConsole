@@ -101,6 +101,22 @@
       <Link>README.md</Link>
     </None>
     <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenu.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\ExtendedScrollRect.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUI.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUILog.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogInspector.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogItem.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUILogScrollingOptions.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButton.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButtonActivator.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuButtonColorer.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIMenuController.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUISearch.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbar.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbarButton.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUIToolbarButtonColor.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\JBConsoleUITouchable.cs.meta" />
+    <None Include="JBConsole\JBConsoleUnityUI\PooledList.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
