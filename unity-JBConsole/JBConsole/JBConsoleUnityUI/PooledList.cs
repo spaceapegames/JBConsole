@@ -339,7 +339,7 @@ public class PooledList : MonoBehaviour
             // add any menuItems to end
             var endIndexToTry = topMenuItemIndex + visibleMenuItems.Count;
 
-            while (endIndexToTry < maxNumItems)
+			while (endIndexToTry >= 0 && endIndexToTry < maxNumItems)
             {
                 var startY = listItemPositions[endIndexToTry];
                 var endY = FindMenuItemEndPosition(endIndexToTry);

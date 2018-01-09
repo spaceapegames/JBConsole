@@ -4,9 +4,7 @@ using com.spaceape.jbconsole;
 using Debug = UnityEngine.Debug;
 
 public class GameLogging : MonoBehaviour
-{
-    [SerializeField] private GameObject JBConsoleUI;
-    
+{    
     private LogstashLogger LogstashLogger { get; set;}
 
     private JBPasswordEntry passwordEntry;
@@ -30,7 +28,45 @@ public class GameLogging : MonoBehaviour
         }
 
         Logger.Init(loggers.ToArray());
+        
+        
+        Application.logMessageReceived -= HandleUnityLog;
+        Application.logMessageReceived += HandleUnityLog;
+
     }
+
+    public static void HandleUnityLog(string logString, string stackTrace, LogType type)
+    {
+        Debug.Log("HandleUnityLog - "+logString);
+        var fullLogString = CreateUnityLogString(logString, stackTrace, type);
+
+        if (type == LogType.Error || type == LogType.Exception)
+        {
+            var errorCode = Logger.CreateErrorHash(fullLogString);
+            Logger.Error(errorCode, fullLogString);
+        }
+        else if (type == LogType.Warning)
+        {
+            Logger.Warn(fullLogString);
+        }
+        else
+        {
+            //Logger.Info(fullLogString);
+        }
+    }
+    
+    static string CreateUnityLogString(string logString, string stackTrace, LogType type)
+    {
+        if (type == LogType.Error || type == LogType.Exception)
+        {
+            return logString + "\n" + stackTrace;
+        }
+        else
+        {
+            return logString;
+        }
+    }
+    
 
     private void OnDestroy()
     {
@@ -65,7 +101,7 @@ public class GameLogging : MonoBehaviour
             return;
         }
 
-        JBConsole.Start(JBConsoleUI);
+        JBConsole.Start(false);
         JBConsole.instance.menuItemWidth = 100;
         JBConsole.instance.Visible = false;
         ApplyJBPrefs();
