@@ -701,7 +701,7 @@ public class JBConsole : MonoBehaviour
 	    return comp;
 	}
 
-	private bool HasExternalUI()
+	public bool HasExternalUI()
 	{
 		return externalUIs != null && externalUIs.Count > 0;
 	}	

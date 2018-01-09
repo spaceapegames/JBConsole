@@ -78,6 +78,12 @@ public class Main : MonoBehaviour
 		*/
 		
 		//StartCoroutine(SlowLogger());
+		
+		JBConsole.AddMenu("Crash Test", delegate
+		{
+			string ben = null;
+			Logger.DebugCh("BOO\n", ben.ToString());
+		});
 	}
 
 	string[] texts = new[]
@@ -125,6 +131,11 @@ public class Main : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.B))
 		{
 			Logger.DebugCh("SLOW", "LOG " + System.DateTime.Now.ToFileTime().ToString());
+		}
+		if (Input.GetKeyDown(KeyCode.C))
+		{
+			string ben = null;
+			Logger.DebugCh("BOO", ben.ToString());
 		}
 	}
 }
