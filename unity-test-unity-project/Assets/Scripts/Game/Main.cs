@@ -63,8 +63,7 @@ public class Main : MonoBehaviour
 		Logger.WarnCh("WEEE", "HELLO CHANNEL WEEE");
 		//Logger.ErrorCh("MOOO", 0, "HELLO CHANNEL MOOO");
 
-		/*
-		for (var i = 0; i < 5; i++)
+		for (var i = 0; i < 50; i++)
 		{
 			var textIndex = Random.Range(0, texts.Length);
 			var numRepeats = Random.Range(1, 1);
@@ -75,7 +74,7 @@ public class Main : MonoBehaviour
 			}
 			Logger.DebugCh("BLAH", text);
 		}
-		*/
+		
 		
 		//StartCoroutine(SlowLogger());
 	}
