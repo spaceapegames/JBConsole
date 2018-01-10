@@ -239,8 +239,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
         {
             if (logUISize.x != this.logUISize.x)
             {
-                this.logUISize = logUISize;
-
+                this.logUISize = logUISize; // update here as its used for the height calculations
                 for (var i = 0; i < logs.Count; i++)
                 {
                     logs[i].ClearHeight();
@@ -252,6 +251,7 @@ public class JBConsoleUILog : MonoBehaviour, iPooledListProvider
             {
                 logUI.SetNeedToUpdateItemsInVisibleWindow();
             }
+            this.logUISize = logUISize;
         }
     }
 

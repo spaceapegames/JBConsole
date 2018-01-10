@@ -41,18 +41,14 @@ public class PooledList : MonoBehaviour
     public Action<Vector2> listSizeChanged = delegate { };
     public Action onAutoScrollCancelled = delegate { };
 
-    private void Awake()
-    {
-        rectTransform = GetComponent<RectTransform>();
-    }
-
     public void Initialise(iPooledListProvider listProvider, bool autoScroll, int maxListSize = 0)
     {
         this.listProvider = listProvider;
         this.autoScroll = autoScroll;
+        rectTransform = GetComponent<RectTransform>();
         listItemPositions = new List<float>(maxListSize);
         EnsureComponentsCreated();        
-        UpdateVisibleWindow(false);
+        UpdateWindowBounds();
         RefreshItemPositions();
         SetNeedToUpdateAllItemsInVisibleWindow();
     }
@@ -379,182 +375,54 @@ public class PooledList : MonoBehaviour
                 else
                 {
                     break;
-                }
-                
+                }                
             }            
         }
-
-        /*
-        // find the location and build items if need a full refresh
-        if (topMenuItemIndex == -1 || visibleMenuItems.Count == 0)
-        {
-            DestroyAllListItems();
-
-            var windowHeight = windowMax - windowMin;
-            
-            if (listProvider.GetNumListItems() > 0 && windowHeight > 0)
-            {
-                topMenuItemIndex = FindClosestMenuItemIndexForYPosition(windowMin);
-                var indexToLoad = topMenuItemIndex;
-                var maxNumItems = listProvider.GetNumListItems();
-
-                if (topMenuItemIndex >= 0)
-                {
-                    var yPosition = listItemPositions[indexToLoad];
-                    while (yPosition < windowMax)
-                    {
-                        var menuItem = CreateMenuItem(indexToLoad);
-                        if (menuItem != null)
-                        {
-                            visibleMenuItems.Add(menuItem);
-                        }
-                        
-                        indexToLoad++;
-                        if (indexToLoad >= maxNumItems)
-                        {
-                            break;
-                        }
-
-                        yPosition = listItemPositions[indexToLoad];
-                    }
-                }
-            }
-        }
-        // otherwise adjust and load any needed
-        else
-        {
-            // add any menuItems to beginning
-            var startIndexToTry = topMenuItemIndex - 1;
-            var maxNumItems = listProvider.GetNumListItems();
-
-            while (startIndexToTry >= 0)
-            {
-                var startY = listItemPositions[startIndexToTry];
-                var endY = FindMenuItemEndPosition(startIndexToTry);
-
-                if (endY > windowMin  && startY < windowMax)
-                //if (startY > windowMin || (startY < windowMin && endY > windowMax))
-                {
-                    var menuItem = CreateMenuItem(startIndexToTry);
-                    if (menuItem != null)
-                    {
-                        visibleMenuItems.Insert(0, menuItem);
-                    }
-                    topMenuItemIndex = startIndexToTry;
-                }
-                else
-                {
-                    break;
-                }
-                
-                startIndexToTry--;
-            }
-            
-            // remove any menuitems from beginning
-            startIndexToTry = topMenuItemIndex;
-            var maxIndexToTry = startIndexToTry + visibleMenuItems.Count;
-            for (var i = startIndexToTry; i < maxIndexToTry; i++)
-            {
-                var startY = listItemPositions[i];
-                var endY = FindMenuItemEndPosition(i);
-                if (endY < windowMin || startY > windowMax)
-                {
-                    var itemToRemove = visibleMenuItems[0];
-                    itemToRemove.DiscardObject();
-                    visibleMenuItems.RemoveAt(0);
-
-                    if (visibleMenuItems.Count > 0)
-                    {
-                        topMenuItemIndex++;
-                    }
-                    else
-                    {
-                        topMenuItemIndex = -1;
-                    }
-                }
-                else
-                {
-                    break;
-                }                
-            }
-            
-            // add any menuItems to end
-            var endIndexToTry = topMenuItemIndex + visibleMenuItems.Count;
-
-			while (endIndexToTry >= 0 && endIndexToTry < maxNumItems)
-            {
-                var startY = listItemPositions[endIndexToTry];
-                var endY = FindMenuItemEndPosition(endIndexToTry);
-
-                if (startY < windowMax && endY > windowMin)
-                {
-                    var menuItem = CreateMenuItem(endIndexToTry);
-                    if (menuItem != null)
-                    {
-                        visibleMenuItems.Add(menuItem);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-                endIndexToTry++;
-            }
-            
-            // remove any menuitems from end
-            endIndexToTry = topMenuItemIndex + visibleMenuItems.Count - 1;
-            for (var i = endIndexToTry; i >= topMenuItemIndex; i--)
-            {
-                var startY = listItemPositions[i];
-                var endY = FindMenuItemEndPosition(i);
-                if (endY < windowMin || startY > windowMax)
-                {
-                    var itemToRemove = visibleMenuItems[visibleMenuItems.Count - 1];
-                    itemToRemove.DiscardObject();
-                    visibleMenuItems.RemoveAt(visibleMenuItems.Count - 1);
-
-                    if (visibleMenuItems.Count <= 0)
-                    {
-                        topMenuItemIndex = -1;
-                    }
-                }
-                else
-                {
-                    break;
-                }
-                
-            }
-
-        }
-        */
     }
-        
-    private void OnRectTransformDimensionsChange()
+
+    private void UpdateWindowBounds()
     {
-        rectTransformDimensionsChange = true;
+        var visibleHeight = rectTransform.rect.height;
+        windowMin = scrollingContent.anchoredPosition.y - (visibleHeight * overhang);
+        windowMax = windowMin + visibleHeight + visibleHeight;
     }
 
     private void Update()
     {
-        if (rectTransformDimensionsChange)
+        if (needToUpdateAutoScroll)
         {
+            UpdateAutoScroll();
+            needToUpdateAutoScroll = false;
+            needToUpdateItemsInVisibleWindow = true;
+        }
+        
+        // check for view changes
+        if (scrollingContent != null && rectTransform != null)
+        {
+            var sizeChanged = false;
+            var previousWindowMin = windowMin;
+            var previousWindowMax = windowMax;
+        
             var currentRectSize = rectTransform.rect.size;
             if (currentRectSize != lastSize)
             {
                 lastSize = currentRectSize;
-                UpdateAutoScroll();                
-                UpdateVisibleWindow(true);
+                sizeChanged = true;
             }
-            rectTransformDimensionsChange = false;
-        }
 
-        if (needToUpdateAutoScroll)
-        {
-            UpdateAutoScroll();
-            UpdateVisibleWindow(true);
-            needToUpdateAutoScroll = false;
-            needToUpdateItemsInVisibleWindow = true;
-        }
+            UpdateWindowBounds();
+            
+            if (sizeChanged)
+            {
+                listSizeChanged(currentRectSize);            
+            }
+
+            if (windowMin != previousWindowMin || windowMax != previousWindowMax)
+            {
+                needToUpdateItemsInVisibleWindow = true;
+            }
+                    
+        }        
         
         if (needToUpdateAllItemsInVisibleWindow || needToUpdateItemsInVisibleWindow)
         {
@@ -565,31 +433,11 @@ public class PooledList : MonoBehaviour
             RefreshVisibleListItems();
             needToUpdateAllItemsInVisibleWindow = false;
             needToUpdateItemsInVisibleWindow = false;
-        }
-                
-    }
-
-    private void UpdateVisibleWindow(bool updateSizeListeners)
-    {
-        if (scrollingContent == null || rectTransform == null)
-        {
-            return;
-        }
-
-        var visibleHeight = rectTransform.rect.height;
-        
-        windowMin = scrollingContent.anchoredPosition.y - (visibleHeight * overhang);
-        windowMax = windowMin + visibleHeight + visibleHeight;
-
-        if (updateSizeListeners && rectTransform != null)
-        {
-            listSizeChanged(rectTransform.rect.size);            
-        }
+        }                
     }
     
     private void ScrollRectChanged(Vector2 scroll)
     {
-        UpdateVisibleWindow(true);
         SetNeedToUpdateItemsInVisibleWindow();
     }
 
@@ -612,7 +460,6 @@ public class PooledList : MonoBehaviour
         anchoredPosition.y = 0;
         scrollingContent.anchoredPosition = anchoredPosition;
         scrollRect.StopMoving();        
-        UpdateVisibleWindow(true);
         SetNeedToUpdateItemsInVisibleWindow();
     }
 
