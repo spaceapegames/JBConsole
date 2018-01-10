@@ -5,7 +5,7 @@
     <id>SpaceApe.JBConsole</id>
 
     <!-- The package version number that is used when resolving dependencies -->
-    <version>1.0.11</version>
+    <version>1.0.12</version>
 
     <!-- Authors contain text that appears directly on the gallery -->
     <authors>SpaceApeGames</authors>
@@ -22,7 +22,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
 
     <!-- Any details about this particular release -->
-    <releaseNotes>Improvements to the updating of the pooled list.</releaseNotes>
+    <releaseNotes>New strategy for updating pooled list.</releaseNotes>
 
     <!-- The description can be used in package manager UI. Note that the 
          nuget.org gallery uses information you add in the portal. -->
