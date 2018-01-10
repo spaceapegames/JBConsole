@@ -77,6 +77,8 @@ public class Main : MonoBehaviour
 		
 		
 		//StartCoroutine(SlowLogger());
+
+		PooledList p = null;
 	}
 
 	string[] texts = new[]
