@@ -4,14 +4,82 @@ using UnityEngine;
 
 public class Main : MonoBehaviour
 {
+	[SerializeField] private GameLogging gameLogging = null;
+
 	private bool autoLog = false;
 	private List<bool> toggles = new List<bool>();
 	private Coroutine autoLogCoroutine = null;
+
+	private IEnumerator DoDemo()
+	{
+		yield return new WaitForSeconds(1.0f);
+		JBConsole.instance.Visible = true;
+		yield return ShowStory(story1, 0);	
+		gameLogging.StartUnityUIConsole();
+		yield return ShowStory(story2, 1);
+		
+		yield return new WaitForSeconds(20.0f);
+
+		Logger.Warn("UX PLEASE RESKIN ME!");
+		
+		yield return new WaitForSeconds(2.0f);
+
+		Logger.Warn("OK BYE!");
+		yield return new WaitForSeconds(2.0f);
+
+		for (var i = 0; i < 50; i++)
+		{
+			if (i % 2 == 0)
+			{
+				Logger.Warn(".");				
+			}
+			else
+			{
+				Logger.Warn(" ");								
+			}
+			yield return new WaitForSeconds(0.2f);			
+		}
+
+	}
+
+	private bool toggle = false;
 	
 	private void Start ()
 	{
 		Application.targetFrameRate = 60;
+
+		StartCoroutine(DoDemo());
+
+		JBConsole.AddMenu("There's Folders...", () =>
+		{
+			Logger.Debug("Root B1");
+		});
+
+		JBConsole.AddMenu("There's Folders.../And Buttons", () =>
+		{
+			Logger.Debug("Root B1");
+		});
+
+		JBConsole.AddMenu("There's Folders.../And Buttons", () =>
+		{
+			Logger.Debug("Root B1");
+		});
+
+		JBConsole.AddMenu("There's Folders.../And Buttons/I'm a button", () =>
+		{
+			Logger.Debug("Root B1");
+		});
+
+		JBConsole.AddMenu("There's Folders.../And Buttons/And Toggles", () =>
+		{
+			Logger.Debug("Root B1");
+		});
+
+		JBConsole.AddToggle("There's Folders.../And Buttons/And Toggles/I'm A Toggle", () => { toggle = !toggle; },
+			() => { return toggle;});
+
 		
+		/*
 		JBConsole.AddMenu("Root B1", () =>
 		{
 			Logger.Debug("Root B1");
@@ -79,8 +147,49 @@ public class Main : MonoBehaviour
 		//StartCoroutine(SlowLogger());
 
 		PooledList p = null;
+		*/
 	}
 
+	IEnumerator ShowStory(string[] story, int output)
+	{
+		var index = 0;
+		while (index < story.Length)
+		{
+			switch (output)
+			{
+				case 0:
+				{
+					Logger.Debug(story[index++]);					
+				} break;
+					
+				case 1:
+				{
+					Logger.Info(story[index++]);					
+				} break;
+
+			}
+			yield return new WaitForSeconds(2.0f);
+		}
+	}
+	
+	private string[] story1 = new[]
+	{
+		"Recognise this?...",
+		"It's that console that's always just too small to be useful...",
+		"...and man those buttons....who's fingers can actually touch those?",
+		"well....",
+		"hold onto your butts...."
+	};
+	
+	private string[] story2 = new[]
+	{
+		"ZOMG etc.",
+		"Look! Its all unity UI!!",
+		"..."
+	};
+
+	
+	
 	string[] texts = new[]
 	{
 		"Lots of stuff wee wee weeeee",

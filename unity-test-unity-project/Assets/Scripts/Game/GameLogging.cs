@@ -57,6 +57,15 @@ public class GameLogging : MonoBehaviour
         return passwordEntry == null || passwordEntry.Accepted;
     }
 
+    public void StartUnityUIConsole()
+    {
+        jbConsoleUIGO = Instantiate(JBConsoleConfig.GetExternalUIPrefab());
+        //jbConsoleUIGO = Instantiate(Resources.Load("JBConsoleUI")) as GameObject;
+        var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
+        JBConsole.instance.AddExternalUI(jbConsoleExternalUI);
+
+    }
+    
     public void StartConsole()
     {
         if (JBConsole.instance)
@@ -70,10 +79,12 @@ public class GameLogging : MonoBehaviour
         JBConsole.instance.Visible = false;
         ApplyJBPrefs();
 
+        /*
         jbConsoleUIGO = Instantiate(JBConsoleConfig.GetExternalUIPrefab());
         //jbConsoleUIGO = Instantiate(Resources.Load("JBConsoleUI")) as GameObject;
         var jbConsoleExternalUI = jbConsoleUIGO.GetComponent<JBConsoleExternalUI>();
         JBConsole.instance.AddExternalUI(jbConsoleExternalUI);
+        */
         
         #if UNITY_EDITOR
         JBCToggleOnKey.RegisterToConsole();
