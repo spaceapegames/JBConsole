@@ -30,6 +30,12 @@ public class JBCustomMenu
 		root.AddTogglePath(GetPath(name), 0, activateCallback, getValueCallback);
 		currentLinks = null;
 	}
+
+    public bool Activate(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return false;
+        return root.ActivatePath(GetPath(name), 0);
+    }
 	
 	public void Remove(string name)
 	{
@@ -134,8 +140,35 @@ public class JBCustomMenu
 				child.SetCallbacks(activateCallback, getValueCallback);
 			}
 		}
-		
-		public void RemovePath(string[] path, int pathIndex)
+
+	    public bool ActivatePath(string[] path, int pathIndex)
+	    {
+            bool result = false;
+
+	        var part = path[pathIndex];
+	        var child = FindChild(part);
+	        if (child != null)
+	        {
+	            if (PathIndexHasChild(path, pathIndex))
+	            {
+	                result = child.ActivatePath(path, pathIndex + 1);
+	                if (child.Children == null || child.Children.Count == 0)
+	                {
+	                    child.ActivateCallback();
+	                    result = true;
+	                }
+	            }
+	            else
+	            {
+	                child.ActivateCallback();
+	                result = true;
+	            }
+	        }
+
+            return result;
+	    }
+
+        public void RemovePath(string[] path, int pathIndex)
 		{
 			var part = path[pathIndex];
 			var child = FindChild(part);
