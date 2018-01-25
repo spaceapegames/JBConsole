@@ -89,8 +89,14 @@ public class JBConsole : MonoBehaviour
 		if (!Exists) return;
 		instance.Menu.AddToggle(name, toggleCallback, getterCallback);
 	}
-	
-	private JBLogger logger;
+
+    public static bool ActivateMenu(string name)
+    {
+        if (!Exists) return false;
+        return instance.Menu.Activate(name);
+    }
+
+    private JBLogger logger;
 	public Font Font { get; private set; }
     private JBCStyle _style;
     public JBCStyle style { get { if (_style == null) _style = new JBCStyle(Font ?? JBConsoleConfig.GetDefaultFont()); return _style; } }
