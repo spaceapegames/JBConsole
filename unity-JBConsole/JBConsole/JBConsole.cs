@@ -644,7 +644,7 @@ public class JBConsole : MonoBehaviour
 			else
 			{
 
-				GUILayout.Label(log.Time.ToLongTimeString() + "-" + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
+				GUILayout.Label(log.Time.ToString("HH:mm:ss.fff") + "-" + log.GetUnityLimitedMessage(), style.GetStyleForLogLevel(log.level), maxwidthscreen);
             }
 			if (!scrolled && Event.current.type == EventType.MouseUp && GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition))
             {
