@@ -1,7 +1,16 @@
 UnityConsole
 ============
 
-Junkbyte Console for Unity.
+# DEPRECATED #
+
+THIS PROJECT IS NOW DEPRECATED AND NO LONGER MAINTAINED.
+
+PLEASE USE THE ACTIVE PROJECT INSTEAD:
+
+https://github.com/spaceapegames/shared-unity-jbconsole
+
+
+# Junkbyte Console for Unity.
 
 This project is a 'port' of Junkbyte Console from Flash/actionscript to Unity.
 http://code.google.com/p/flash-console/
